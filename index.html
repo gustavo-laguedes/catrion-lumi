@@ -204,7 +204,6 @@
     <p class="section-subtitle">
       Mais pra frente aqui entra seleção de cliente, data de entrega, status etc.
     </p>
-    <!-- Por enquanto é apenas layout -->
     <div class="item-meta">
       Cliente: (a definir) <br>
       Data de entrega: (a definir)
@@ -216,18 +215,15 @@
     <p class="section-subtitle">
       Liste os produtos que serão produzidos/vendidos neste pedido.
     </p>
-
-    <button class="btn-line" type="button" id="btn-add-item">
-      + Adicionar item
-    </button>
-    <p class="item-meta" style="margin-top:6px;">
-      No futuro, cada item vai puxar produto, quantidade, tempo, custo, etc.
+    <p class="item-meta">
+      Use o botão “+” para adicionar itens ao pedido.
     </p>
   </div>
 
-  <!-- botão flutuante de +, estilo app de agenda -->
-  <button class="fab-add" type="button" id="fab-add-item">+</button>
+  <!-- botão flutuante para adicionar item -->
+  <button class="fab-add" type="button" data-add-context="item do pedido">+</button>
 </section>
+
 
 
     <!-- FINANÇAS -->
@@ -282,6 +278,7 @@
           Cadastro de clientes e consulta de histórico de pedidos.
         </div>
       </div>
+      <button class="fab-add" type="button" data-add-context="cliente">+</button>
     </section>
 
     <section class="view" data-view="cad-produtos">
@@ -292,6 +289,7 @@
           Cadastro de produtos finais (composição, margem, tempo, energia etc).
         </div>
       </div>
+      <button class="fab-add" type="button" data-add-context="produto">+</button>
     </section>
 
     <section class="view" data-view="cad-mp">
@@ -302,6 +300,7 @@
           Cadastro de insumos com unidade, custo, fornecedor, estoque inicial.
         </div>
       </div>
+      <button class="fab-add" type="button" data-add-context="matéria-prima">+</button>
     </section>
 
     <section class="view" data-view="cad-fornecedores">
@@ -312,6 +311,7 @@
           Cadastro de quem fornece matérias-primas.
         </div>
       </div>
+      <button class="fab-add" type="button" data-add-context="fornecedor">+</button>
     </section>
 
     <!-- CONSULTA ESTOQUE -->
