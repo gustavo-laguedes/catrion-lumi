@@ -190,17 +190,45 @@
       </div>
     </section>
 
-    <!-- NOVO PEDIDO -->
     <section class="view" data-view="novo-pedido">
-      <div class="list-header">
-        <span class="pill-tag">Registrar</span>
-        <div class="list-title">Novo Pedido</div>
-        <div class="list-subtitle">
-          Tela para montar orçamento/pedido (cliente, produtos, tempo, energia etc).
-          <br>Por enquanto é só esqueleto pra gente preencher depois.
-        </div>
-      </div>
-    </section>
+  <div class="list-header">
+    <span class="pill-tag">Registrar</span>
+    <div class="list-title">Novo Pedido</div>
+    <div class="list-subtitle">
+      Selecione o cliente, adicione os itens do pedido e depois salve.
+    </div>
+  </div>
+
+  <div class="home-section">
+    <div class="section-title">Dados do pedido</div>
+    <p class="section-subtitle">
+      Mais pra frente aqui entra seleção de cliente, data de entrega, status etc.
+    </p>
+    <!-- Por enquanto é apenas layout -->
+    <div class="item-meta">
+      Cliente: (a definir) <br>
+      Data de entrega: (a definir)
+    </div>
+  </div>
+
+  <div class="home-section">
+    <div class="section-title">Itens do pedido</div>
+    <p class="section-subtitle">
+      Liste os produtos que serão produzidos/vendidos neste pedido.
+    </p>
+
+    <button class="btn-line" type="button" id="btn-add-item">
+      + Adicionar item
+    </button>
+    <p class="item-meta" style="margin-top:6px;">
+      No futuro, cada item vai puxar produto, quantidade, tempo, custo, etc.
+    </p>
+  </div>
+
+  <!-- botão flutuante de +, estilo app de agenda -->
+  <button class="fab-add" type="button" id="fab-add-item">+</button>
+</section>
+
 
     <!-- FINANÇAS -->
     <section class="view" data-view="financas">
