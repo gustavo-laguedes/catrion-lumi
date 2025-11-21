@@ -1,3 +1,6 @@
+// =========================
+// NAVIGAÇÃO / VIEWS
+// =========================
 const views = document.querySelectorAll('.view');
 const header = document.getElementById('app-header');
 const bottomNav = document.getElementById('bottom-nav');
@@ -31,7 +34,9 @@ function showView(name) {
   });
 }
 
+// =========================
 // LOGIN / CADASTRO
+// =========================
 document.getElementById('link-cadastro').addEventListener('click', () => {
   showView('register');
 });
@@ -81,7 +86,9 @@ if (configEmail) {
   configEmail.textContent = 'email@exemplo.com';
 }
 
-// --- CALENDÁRIO AGENDA ---
+// =========================
+// CALENDÁRIO AGENDA
+// =========================
 const agendaGrid = document.getElementById('agenda-grid');
 const agendaLabel = document.getElementById('agenda-month-label');
 const agendaPrev = document.getElementById('agenda-prev');
@@ -103,6 +110,8 @@ const agendaEventos = {
 };
 
 function renderAgenda() {
+  if (!agendaGrid || !agendaLabel) return;
+
   agendaGrid.innerHTML = '';
 
   const firstDay = new Date(calYear, calMonth, 1);
@@ -177,11 +186,14 @@ if (agendaGrid) {
   renderAgenda();
 }
 
+// =========================
+// FAB (+) para todos os contextos
+// =========================
 document.querySelectorAll('.fab-add').forEach(btn => {
   btn.addEventListener('click', () => {
     const ctx = btn.dataset.addContext || 'registro';
 
-    // caso específico: item do pedido (modal completo)
+    // caso específico: Novo Pedido
     if (btn.id === 'fab-add-item') {
       abrirModalItem();
       return;
@@ -192,7 +204,9 @@ document.querySelectorAll('.fab-add').forEach(btn => {
   });
 });
 
-// --- MODAL GENÉRICO PARA DEMAIS "+" ---
+// =========================
+// MODAL GENÉRICO PARA OUTROS "+"
+// =========================
 const modalGeneric = document.getElementById('modal-generic');
 const modalGenericTitle = document.getElementById('modal-generic-title');
 const modalGenericText = document.getElementById('modal-generic-text');
@@ -230,200 +244,13 @@ if (modalGenericCancel) {
 }
 if (modalGenericSave) {
   modalGenericSave.addEventListener('click', () => {
-    // aqui no futuro vamos realmente salvar (Firebase, lista etc.)
-    // por enquanto só fecha pra dar feedback visual
     fecharModalGenerico();
   });
 }
 
-// Catálogo temporário de produtos (depois vai vir do cadastro/Firebase)
-const produtosCatalogo = [
-  { id: 'p1', nome: 'Caixa personalizada', preco: 50.00 },
-  { id: 'p2', nome: 'Caneca floral', preco: 35.00 },
-  { id: 'p3', nome: 'Quadro decorativo', preco: 80.00 }
-];
-
-
-// --- Novo Pedido: modal de itens e listagem ---
-let pedidoItens = [];
-
-const modalItem = document.getElementById('modal-item');
-const btnModalFechar = document.getElementById('modal-item-fechar');
-const btnModalCancelar = document.getElementById('modal-item-cancelar');
-const btnModalSalvar = document.getElementById('modal-item-salvar');
-const btnModalAddRow = document.getElementById('modal-item-add-row');
-const itensMultiContainer = document.getElementById('itens-multi-container');
-const listaItensEl = document.getElementById('lista-itens-pedido');
-const pedidoTotalEl = document.getElementById('pedido-total');
-
-function preencherSelectProdutos(selectEl) {
-  if (!selectEl) return;
-  selectEl.innerHTML = '<option value="">— selecione —</option>';
-  produtosCatalogo.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = `${p.nome} — R$ ${p.preco.toFixed(2)}`;
-    selectEl.appendChild(opt);
-  });
-}
-
-function criarLinhaItem() {
-  if (!itensMultiContainer) return;
-
-  const row = document.createElement('div');
-  row.classList.add('item-modal-row');
-
-  row.innerHTML = `
-    <div class="form-group">
-      <label>Produto</label>
-      <select class="item-produto-select"></select>
-    </div>
-    <div class="form-group">
-      <label>Qtd.</label>
-      <input type="number" class="item-quantidade-input" min="1" value="1">
-    </div>
-  `;
-
-  itensMultiContainer.appendChild(row);
-
-  const select = row.querySelector('.item-produto-select');
-  preencherSelectProdutos(select);
-}
-
-function abrirModalItem() {
-  if (!modalItem || !itensMultiContainer) return;
-
-  // limpa todas as linhas e cria uma nova
-  itensMultiContainer.innerHTML = '';
-  criarLinhaItem();
-
-  modalItem.classList.add('visible');
-}
-
-function fecharModalItem() {
-  if (!modalItem) return;
-  modalItem.classList.remove('visible');
-}
-
-function calcularTotalPedido() {
-  const total = pedidoItens.reduce((acc, item) => {
-    return acc + (item.quantidade * item.preco);
-  }, 0);
-
-  if (pedidoTotalEl) {
-    pedidoTotalEl.textContent = `Total do pedido: R$ ${total.toFixed(2)}`;
-  }
-}
-
-function renderizarItensPedido() {
-  if (!listaItensEl) return;
-
-  if (!pedidoItens.length) {
-    listaItensEl.innerHTML = '<p class="item-meta">Nenhum item adicionado ainda. Toque em “+” para incluir.</p>';
-    calcularTotalPedido();
-    return;
-  }
-
-  const html = pedidoItens.map((item, idx) => {
-    const total = item.quantidade * item.preco;
-    return `
-      <div class="item-card">
-        <div class="item-row">
-          <span class="item-title">${item.produtoNome}</span>
-          <span class="badge badge-venda">Qtd: ${item.quantidade}</span>
-        </div>
-        <div class="item-meta">
-          Preço unit.: R$ ${item.preco.toFixed(2)} • Total: R$ ${total.toFixed(2)}
-        </div>
-        <div class="item-actions">
-          <button type="button" class="btn-text" data-editar-item="${idx}">✏️ Editar</button>
-          <button type="button" class="btn-text btn-text-danger" data-remover-item="${idx}">Remover</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  listaItensEl.innerHTML = html;
-
-  // eventos de remover
-  listaItensEl.querySelectorAll('[data-remover-item]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.removerItem, 10);
-      if (!isNaN(idx)) {
-        pedidoItens.splice(idx, 1);
-        renderizarItensPedido();
-      }
-    });
-  });
-
-  // eventos de editar (por enquanto só um alerta / placeholder)
-  listaItensEl.querySelectorAll('[data-editar-item]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.editarItem, 10);
-      if (!isNaN(idx)) {
-        alert('Edição de item ainda será implementada. (Item #' + (idx + 1) + ')');
-      }
-    });
-  });
-
-  calcularTotalPedido();
-}
-
-// eventos do modal de itens
-if (btnModalFechar) btnModalFechar.addEventListener('click', fecharModalItem);
-if (btnModalCancelar) btnModalCancelar.addEventListener('click', fecharModalItem);
-if (btnModalAddRow) btnModalAddRow.addEventListener('click', criarLinhaItem);
-
-if (btnModalSalvar) {
-  btnModalSalvar.addEventListener('click', () => {
-    if (!itensMultiContainer) return;
-
-    const rows = itensMultiContainer.querySelectorAll('.item-modal-row');
-    const novosItens = [];
-
-    rows.forEach(row => {
-      const select = row.querySelector('.item-produto-select');
-      const qtdInput = row.querySelector('.item-quantidade-input');
-
-      if (!select || !qtdInput) return;
-
-      const produtoId = select.value;
-      const quantidade = Number(qtdInput.value || 0);
-
-      if (!produtoId || quantidade <= 0) {
-        return;
-      }
-
-      const prod = produtosCatalogo.find(p => p.id === produtoId);
-      if (!prod) return;
-
-      novosItens.push({
-        produtoId: prod.id,
-        produtoNome: prod.nome,
-        quantidade,
-        preco: prod.preco
-      });
-    });
-
-    if (!novosItens.length) {
-      alert('Selecione pelo menos um produto com quantidade válida.');
-      return;
-    }
-
-    pedidoItens = pedidoItens.concat(novosItens);
-    renderizarItensPedido();
-    fecharModalItem();
-  });
-}
-
-// render inicial
-renderizarItensPedido();
-
-
-
-
-
-// --- MÊS NA TELA DE VENDAS ---
+// =========================
+// MÊS NA TELA DE VENDAS
+// =========================
 const vendasMesChip = document.getElementById('vendas-mes-chip');
 const vendasMesPrev = document.getElementById('vendas-mes-prev');
 const vendasMesNext = document.getElementById('vendas-mes-next');
@@ -459,10 +286,9 @@ if (vendasMesPrev && vendasMesNext) {
 
 renderVendasMes();
 
-// -----------------------------
-// BASE DE DADOS TEMPORÁRIA
-// (depois você troca pelo Firebase)
-// -----------------------------
+// =========================
+// DADOS TEMPORÁRIOS (CLIENTES / PRODUTOS)
+// =========================
 let clientes = [
   { nome: "Maria Souza", tel: "12 99999-2222", end: "Rua A, 100", cid: "Taubaté", est: "SP" },
   { nome: "Ana Paula", tel: "12 98888-1111", end: "Av. B, 345", cid: "Pinda", est: "SP" }
@@ -473,25 +299,121 @@ let produtos = [
   { nome: "Caneca floral", preco: 35, custo: 12 }
 ];
 
-// -----------------------------
-function abrirModalPedido() {
-  document.getElementById("modal-pedido").classList.add("visible");
+// =========================
+// NOVO PEDIDO - LISTA NA TELA PRINCIPAL
+// =========================
+let pedidoItens = []; // cada item: {clienteNome, produtoNome, quantidade, totalVenda, totalCusto}
+
+const listaItensEl = document.getElementById('lista-itens-pedido');
+const pedidoTotalEl = document.getElementById('pedido-total');
+
+function renderizarItensPedido() {
+  if (!listaItensEl) return;
+
+  if (!pedidoItens.length) {
+    listaItensEl.innerHTML = '<p class="item-meta">Nenhum item adicionado ainda. Toque em “+” para incluir.</p>';
+    if (pedidoTotalEl) pedidoTotalEl.textContent = 'Total do pedido: R$ 0,00';
+    return;
+  }
+
+  let total = 0;
+
+  const html = pedidoItens.map((item, idx) => {
+    total += item.totalVenda;
+    return `
+      <div class="item-card">
+        <div class="item-row">
+          <span class="item-title">${item.produtoNome}</span>
+          <span class="badge badge-venda">Qtd: ${item.quantidade}</span>
+        </div>
+        <div class="item-meta">
+          Cliente: ${item.clienteNome || '(não definido)'}<br>
+          Venda: R$ ${item.totalVenda.toFixed(2)} • Custo: R$ ${item.totalCusto.toFixed(2)}
+        </div>
+        <div class="item-actions">
+          <button type="button" class="btn-text btn-text-danger" data-remover-item="${idx}">Remover</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listaItensEl.innerHTML = html;
+
+  if (pedidoTotalEl) {
+    pedidoTotalEl.textContent = `Total do pedido: R$ ${total.toFixed(2)}`;
+  }
+
+  // remover item
+  listaItensEl.querySelectorAll('[data-remover-item]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.removerItem, 10);
+      if (!isNaN(idx)) {
+        pedidoItens.splice(idx, 1);
+        renderizarItensPedido();
+      }
+    });
+  });
+}
+
+// render inicial (sem itens)
+renderizarItensPedido();
+
+// =========================
+// MODAL MODERNO - NOVO PEDIDO
+// =========================
+const modalItem = document.getElementById('modal-item');
+const btnModalFechar = document.getElementById('modal-item-fechar');
+const btnModalCancelar = document.getElementById('modal-item-cancelar');
+const btnModalSalvar = document.getElementById('modal-item-salvar');
+const btnAddProduto = document.getElementById('btn-add-produto');
+
+const campoBuscaCliente = document.getElementById('pedido-busca-cliente');
+const listaClientesEl = document.getElementById('lista-clientes');
+const clienteInfoCard = document.getElementById('cliente-info');
+const infoTel = document.getElementById('info-telefone');
+const infoEnd = document.getElementById('info-endereco');
+const infoCid = document.getElementById('info-cidade');
+const infoEst = document.getElementById('info-estado');
+
+function abrirModalItem() {
+  if (!modalItem) return;
+
+  // limpa cliente
+  if (campoBuscaCliente) {
+    campoBuscaCliente.value = '';
+  }
+  if (clienteInfoCard) {
+    clienteInfoCard.style.display = 'none';
+  }
+  if (listaClientesEl) {
+    listaClientesEl.innerHTML = '';
+    listaClientesEl.style.display = 'none';
+  }
+
+  // limpa produtos dentro do modal
   limparProdutosDoPedido();
-  adicionarProduto();
-  recalcularTotais();
+  adicionarProdutoLinha();
+  atualizarTotaisModal();
+
+  modalItem.classList.add('visible');
 }
 
-// -----------------------------
-function fecharModalPedido() {
-  document.getElementById("modal-pedido").classList.remove("visible");
+function fecharModalItem() {
+  if (!modalItem) return;
+  modalItem.classList.remove('visible');
 }
 
-// -----------------------------
-function adicionarProduto() {
-  const container = document.getElementById("pedido-produtos-container");
+function limparProdutosDoPedido() {
+  const container = document.getElementById('pedido-produtos-container');
+  if (container) container.innerHTML = '';
+}
 
-  const div = document.createElement("div");
-  div.className = "produto-item";
+function adicionarProdutoLinha() {
+  const container = document.getElementById('pedido-produtos-container');
+  if (!container) return;
+
+  const div = document.createElement('div');
+  div.className = 'produto-item';
   div.innerHTML = `
     <div class="form-group">
       <label>Produto</label>
@@ -526,85 +448,205 @@ function adicionarProduto() {
   configurarQuantidade(div);
 }
 
-// -----------------------------
-function limparProdutosDoPedido() {
-  document.getElementById("pedido-produtos-container").innerHTML = "";
+// ---------- BUSCA CLIENTE ----------
+function configurarBuscaCliente() {
+  if (!campoBuscaCliente || !listaClientesEl) return;
+
+  campoBuscaCliente.addEventListener('input', () => {
+    const texto = campoBuscaCliente.value.toLowerCase();
+    listaClientesEl.innerHTML = '';
+
+    if (!texto) {
+      listaClientesEl.style.display = 'none';
+      return;
+    }
+
+    clientes
+      .filter(c => c.nome.toLowerCase().includes(texto))
+      .forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.textContent = c.nome;
+        item.addEventListener('click', () => {
+          campoBuscaCliente.value = c.nome;
+          listaClientesEl.innerHTML = '';
+          listaClientesEl.style.display = 'none';
+
+          if (clienteInfoCard) {
+            clienteInfoCard.style.display = 'block';
+            if (infoTel) infoTel.textContent = c.tel;
+            if (infoEnd) infoEnd.textContent = c.end;
+            if (infoCid) infoCid.textContent = c.cid;
+            if (infoEst) infoEst.textContent = c.est;
+          }
+        });
+        listaClientesEl.appendChild(item);
+      });
+
+    // opção de cadastrar cliente
+    const addItem = document.createElement('div');
+    addItem.className = 'autocomplete-item';
+    addItem.textContent = '+ Cadastrar cliente';
+    addItem.addEventListener('click', () => {
+      showView('cad-clientes');
+      fecharModalItem();
+    });
+    listaClientesEl.appendChild(addItem);
+
+    listaClientesEl.style.display = 'block';
+  });
 }
 
-// -----------------------------
+// ---------- BUSCA PRODUTO + VALORES ----------
 function configurarBuscaProduto(divProduto) {
-  const inputBusca = divProduto.querySelector(".produto-busca");
-  const lista = divProduto.querySelector(".autocomplete-list");
-  const qtdInput = divProduto.querySelector(".produto-qtd");
-  const totalVenda = divProduto.querySelector(".produto-total-venda");
-  const totalCusto = divProduto.querySelector(".produto-total-custo");
+  const inputBusca = divProduto.querySelector('.produto-busca');
+  const lista = divProduto.querySelector('.autocomplete-list');
+  const qtdInput = divProduto.querySelector('.produto-qtd');
+  const totalVenda = divProduto.querySelector('.produto-total-venda');
+  const totalCusto = divProduto.querySelector('.produto-total-custo');
 
-  inputBusca.addEventListener("input", () => {
+  if (!inputBusca || !lista || !qtdInput || !totalVenda || !totalCusto) return;
+
+  inputBusca.addEventListener('input', () => {
     const texto = inputBusca.value.toLowerCase();
-    lista.innerHTML = "";
+    lista.innerHTML = '';
+
+    if (!texto) {
+      lista.style.display = 'none';
+      return;
+    }
 
     produtos
       .filter(p => p.nome.toLowerCase().includes(texto))
       .forEach(p => {
-        const item = document.createElement("div");
-        item.className = "autocomplete-item";
-        item.textContent = `${p.nome} — R$ ${p.preco}`;
-        item.addEventListener("click", () => {
+        const item = document.createElement('div');
+        item.className = 'autocomplete-item';
+        item.textContent = `${p.nome} — R$ ${p.preco.toFixed(2)}`;
+        item.addEventListener('click', () => {
           inputBusca.value = p.nome;
           inputBusca.dataset.preco = p.preco;
           inputBusca.dataset.custo = p.custo;
 
-          atualizarValores();
+          atualizarValoresProduto(divProduto);
 
-          lista.innerHTML = "";
+          lista.innerHTML = '';
+          lista.style.display = 'none';
         });
         lista.appendChild(item);
       });
+
+    // opção cadastrar produto
+    const addItem = document.createElement('div');
+    addItem.className = 'autocomplete-item';
+    addItem.textContent = '+ Cadastrar produto';
+    addItem.addEventListener('click', () => {
+      showView('cad-produtos');
+      fecharModalItem();
+    });
+    lista.appendChild(addItem);
+
+    lista.style.display = 'block';
   });
-
-  function atualizarValores() {
-    const qtd = Number(qtdInput.value);
-    const preco = Number(inputBusca.dataset.preco || 0);
-    const custo = Number(inputBusca.dataset.custo || 0);
-
-    totalVenda.textContent = "R$ " + (qtd * preco).toFixed(2);
-    totalCusto.textContent = "R$ " + (qtd * custo).toFixed(2);
-
-    recalcularTotais();
-  }
-
-  divProduto.qtdListener = () => atualizarValores();
-  qtdInput.addEventListener("input", atualizarValores);
 }
 
-// -----------------------------
 function configurarQuantidade(divProduto) {
-  const qtdInput = divProduto.querySelector(".produto-qtd");
-  qtdInput.addEventListener("input", () => {
-    const busca = divProduto.querySelector(".produto-busca");
-    if (busca.dataset.preco) {
-      busca.dispatchEvent(new Event("input"));
-    }
+  const qtdInput = divProduto.querySelector('.produto-qtd');
+  if (!qtdInput) return;
+
+  qtdInput.addEventListener('input', () => {
+    atualizarValoresProduto(divProduto);
   });
 }
 
-// -----------------------------
-function recalcularTotais() {
+function atualizarValoresProduto(divProduto) {
+  const inputBusca = divProduto.querySelector('.produto-busca');
+  const qtdInput = divProduto.querySelector('.produto-qtd');
+  const totalVenda = divProduto.querySelector('.produto-total-venda');
+  const totalCusto = divProduto.querySelector('.produto-total-custo');
+
+  if (!inputBusca || !qtdInput || !totalVenda || !totalCusto) return;
+
+  const qtd = Number(qtdInput.value || 0);
+  const preco = Number(inputBusca.dataset.preco || 0);
+  const custo = Number(inputBusca.dataset.custo || 0);
+
+  totalVenda.textContent = 'R$ ' + (qtd * preco).toFixed(2);
+  totalCusto.textContent = 'R$ ' + (qtd * custo).toFixed(2);
+
+  atualizarTotaisModal();
+}
+
+function atualizarTotaisModal() {
   let totalVenda = 0;
   let totalCusto = 0;
 
-  document.querySelectorAll(".produto-item").forEach(div => {
-    const venda = div.querySelector(".produto-total-venda").textContent.replace("R$ ", "");
-    const custo = div.querySelector(".produto-total-custo").textContent.replace("R$ ", "");
+  document.querySelectorAll('.produto-item').forEach(div => {
+    const vendaEl = div.querySelector('.produto-total-venda');
+    const custoEl = div.querySelector('.produto-total-custo');
+    if (!vendaEl || !custoEl) return;
 
-    totalVenda += Number(venda);
-    totalCusto += Number(custo);
+    const vendaNum = Number(vendaEl.textContent.replace('R$','').trim() || 0);
+    const custoNum = Number(custoEl.textContent.replace('R$','').trim() || 0);
+
+    totalVenda += vendaNum;
+    totalCusto += custoNum;
   });
 
-  document.getElementById("total-venda").textContent = "R$ " + totalVenda.toFixed(2);
-  document.getElementById("total-custo").textContent = "R$ " + totalCusto.toFixed(2);
+  const vendaSpan = document.getElementById('total-venda-modal');
+  const custoSpan = document.getElementById('total-custo-modal');
+  const lucroSpan = document.getElementById('total-lucro-modal');
 
-  const lucroPerc = totalCusto > 0 ? ((totalVenda - totalCusto) / totalCusto) * 100 : 0;
-  document.getElementById("total-lucro").textContent = lucroPerc.toFixed(1) + "%";
+  if (vendaSpan) vendaSpan.textContent = 'R$ ' + totalVenda.toFixed(2);
+  if (custoSpan) custoSpan.textContent = 'R$ ' + totalCusto.toFixed(2);
+
+  let lucroPerc = 0;
+  if (totalCusto > 0) {
+    lucroPerc = ((totalVenda - totalCusto) / totalCusto) * 100;
+  }
+  if (lucroSpan) lucroSpan.textContent = lucroPerc.toFixed(1) + '%';
 }
 
+// ---------- SALVAR DO MODAL PARA A LISTA ----------
+function salvarPedidoDoModal() {
+  const clienteNome = campoBuscaCliente ? campoBuscaCliente.value.trim() : '';
+
+  const novos = [];
+
+  document.querySelectorAll('.produto-item').forEach(div => {
+    const inputBusca = div.querySelector('.produto-busca');
+    const qtdInput = div.querySelector('.produto-qtd');
+
+    if (!inputBusca || !qtdInput) return;
+
+    const nomeProd = inputBusca.value.trim();
+    const preco = Number(inputBusca.dataset.preco || 0);
+    const custo = Number(inputBusca.dataset.custo || 0);
+    const qtd = Number(qtdInput.value || 0);
+
+    if (!nomeProd || qtd <= 0 || preco <= 0) return;
+
+    novos.push({
+      clienteNome,
+      produtoNome: nomeProd,
+      quantidade: qtd,
+      totalVenda: qtd * preco,
+      totalCusto: qtd * custo
+    });
+  });
+
+  if (!novos.length) {
+    alert('Adicione pelo menos um produto válido.');
+    return;
+  }
+
+  pedidoItens = pedidoItens.concat(novos);
+  renderizarItensPedido();
+  fecharModalItem();
+}
+
+// listeners do modal
+if (campoBuscaCliente) configurarBuscaCliente();
+if (btnAddProduto) btnAddProduto.addEventListener('click', adicionarProdutoLinha);
+if (btnModalFechar) btnModalFechar.addEventListener('click', fecharModalItem);
+if (btnModalCancelar) btnModalCancelar.addEventListener('click', fecharModalItem);
+if (btnModalSalvar) btnModalSalvar.addEventListener('click', salvarPedidoDoModal);
