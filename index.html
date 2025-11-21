@@ -230,31 +230,85 @@
   <!-- botão flutuante para adicionar item -->
   <button class="fab-add" type="button" data-add-context="item do pedido" id="fab-add-item">+</button>
 
-    <!-- MODAL de adicionar item -->
+     <!-- MODAL Adicionar Pedido -->
   <div class="modal-backdrop" id="modal-item">
     <div class="modal">
       <div class="modal-header">
-        <span>Adicionar itens ao pedido</span>
+        <span>Adicionar Pedido</span>
         <button type="button" class="modal-close" id="modal-item-fechar">×</button>
       </div>
-      <div class="modal-body">
-        <p class="item-meta" style="margin-bottom:8px;">
-          Escolha um ou mais produtos e informe apenas a quantidade. O preço unitário será puxado do cadastro.
-        </p>
 
-        <!-- container para várias linhas de produto + quantidade -->
-        <div id="itens-multi-container">
-          <!-- linhas são criadas via JS -->
+      <div class="modal-body">
+
+        <!-- BLOCO: CLIENTE -->
+        <div class="modal-section">
+          <div class="modal-section-title">Cliente</div>
+
+          <div class="form-group">
+            <label for="pedido-busca-cliente">Cliente</label>
+            <input type="text" id="pedido-busca-cliente" placeholder="Digite para buscar...">
+            <div class="autocomplete-list" id="lista-clientes"></div>
+          </div>
+
+          <div class="cliente-info-card" id="cliente-info" style="display:none;">
+            <div><strong>Telefone:</strong> <span id="info-telefone"></span></div>
+            <div><strong>Endereço:</strong> <span id="info-endereco"></span></div>
+            <div><strong>Cidade:</strong> <span id="info-cidade"></span></div>
+            <div><strong>Estado:</strong> <span id="info-estado"></span></div>
+          </div>
         </div>
+
+        <hr class="modal-divider">
+
+        <!-- BLOCO: PRODUTOS -->
+        <div class="modal-section">
+          <div class="modal-section-title">Produtos</div>
+          <p class="item-meta">
+            Digite para buscar um produto, informe a quantidade e veja os valores de venda e custo.
+          </p>
+
+          <div id="pedido-produtos-container">
+            <!-- linhas de produto serão criadas via JS -->
+          </div>
+
+          <button type="button" class="btn-text" id="btn-add-produto">
+            + Adicionar produto
+          </button>
+        </div>
+
+        <hr class="modal-divider">
+
+        <!-- BLOCO: TOTAIS -->
+        <div class="modal-section">
+          <div class="modal-section-title">Totais deste pedido</div>
+          <div class="totais-pedido">
+            <div class="totais-row">
+              <span class="total-label">Total venda:</span>
+              <span class="total-valor total-venda" id="total-venda-modal">R$ 0,00</span>
+            </div>
+            <div class="totais-row">
+              <span class="total-label">Total custo:</span>
+              <span class="total-valor total-custo" id="total-custo-modal">R$ 0,00</span>
+            </div>
+            <div class="totais-row">
+              <span class="total-label">Lucro:</span>
+              <span class="total-valor" id="total-lucro-modal">0%</span>
+            </div>
+          </div>
+        </div>
+
       </div>
+
       <div class="modal-footer">
-        <button type="button" class="btn-text" id="modal-item-add-row">+ Adicionar produto</button>
         <button type="button" class="btn-text" id="modal-item-cancelar">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="modal-item-salvar">Adicionar ao pedido</button>
+        <button type="button" class="btn btn-primary" id="modal-item-salvar">
+          Adicionar ao pedido
+        </button>
       </div>
     </div>
   </div>
 </section>
+
 
 
 
