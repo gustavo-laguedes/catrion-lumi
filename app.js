@@ -177,13 +177,129 @@ if (agendaGrid) {
   renderAgenda();
 }
 
-// --- ações dos botões flutuantes "+" (novo pedido, clientes, etc.) ---
 document.querySelectorAll('.fab-add').forEach(btn => {
   btn.addEventListener('click', () => {
     const ctx = btn.dataset.addContext || 'registro';
+
+    // caso específico: botão de item do pedido
+    if (btn.id === 'fab-add-item') {
+      abrirModalItem();
+      return;
+    }
+
+    // outros + continuam só com mensagem por enquanto
     alert('Aqui vai abrir o formulário para adicionar ' + ctx + '.');
   });
 });
+
+// --- Novo Pedido: modal de itens e listagem ---
+let pedidoItens = [];
+
+const modalItem = document.getElementById('modal-item');
+const btnModalFechar = document.getElementById('modal-item-fechar');
+const btnModalCancelar = document.getElementById('modal-item-cancelar');
+const btnModalSalvar = document.getElementById('modal-item-salvar');
+const listaItensEl = document.getElementById('lista-itens-pedido');
+
+function abrirModalItem() {
+  if (!modalItem) return;
+  // limpa campos básicos
+  document.getElementById('item-produto').value = '';
+  document.getElementById('item-quantidade').value = 1;
+  document.getElementById('item-preco').value = 0;
+  document.getElementById('item-tempo').value = 0;
+  document.getElementById('item-energia').value = 0;
+  document.getElementById('item-obs').value = '';
+
+  modalItem.classList.add('visible');
+}
+
+function fecharModalItem() {
+  if (!modalItem) return;
+  modalItem.classList.remove('visible');
+}
+
+function renderizarItensPedido() {
+  if (!listaItensEl) return;
+
+  if (!pedidoItens.length) {
+    listaItensEl.innerHTML = '<p class="item-meta">Nenhum item adicionado ainda. Toque em “+” para incluir.</p>';
+    return;
+  }
+
+  const html = pedidoItens.map((item, idx) => {
+    const total = item.quantidade * item.preco;
+    return `
+      <div class="item-card">
+        <div class="item-row">
+          <span class="item-title">${item.produto}</span>
+          <span class="badge badge-venda">Qtd: ${item.quantidade}</span>
+        </div>
+        <div class="item-meta">
+          Preço unit.: R$ ${item.preco.toFixed(2)} • Total: R$ ${total.toFixed(2)}<br>
+          Tempo: ${item.tempo} min • Energia: ${item.energia} kWh
+        </div>
+        ${item.obs ? `<div class="item-meta">Obs.: ${item.obs}</div>` : ''}
+        <div class="item-actions">
+          <button type="button" class="btn-text btn-text-danger" data-remover-item="${idx}">Remover</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listaItensEl.innerHTML = html;
+
+  // adiciona eventos de remover
+  listaItensEl.querySelectorAll('[data-remover-item]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.removerItem, 10);
+      if (!isNaN(idx)) {
+        pedidoItens.splice(idx, 1);
+        renderizarItensPedido();
+      }
+    });
+  });
+}
+
+// eventos do modal
+if (btnModalFechar) btnModalFechar.addEventListener('click', fecharModalItem);
+if (btnModalCancelar) btnModalCancelar.addEventListener('click', fecharModalItem);
+
+if (btnModalSalvar) {
+  btnModalSalvar.addEventListener('click', () => {
+    const produto = document.getElementById('item-produto').value.trim();
+    const quantidade = Number(document.getElementById('item-quantidade').value || 0);
+    const preco = Number(document.getElementById('item-preco').value || 0);
+    const tempo = Number(document.getElementById('item-tempo').value || 0);
+    const energia = Number(document.getElementById('item-energia').value || 0);
+    const obs = document.getElementById('item-obs').value.trim();
+
+    if (!produto) {
+      alert('Informe o nome do produto.');
+      return;
+    }
+    if (quantidade <= 0) {
+      alert('Quantidade deve ser maior que zero.');
+      return;
+    }
+
+    pedidoItens.push({
+      produto,
+      quantidade,
+      preco,
+      tempo,
+      energia,
+      obs
+    });
+
+    renderizarItensPedido();
+    fecharModalItem();
+  });
+}
+
+// render inicial (caso queira garantir estado)
+renderizarItensPedido();
+
 
 
 
