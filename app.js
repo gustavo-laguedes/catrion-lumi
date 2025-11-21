@@ -307,6 +307,17 @@ let pedidoItens = []; // cada item: {clienteNome, produtoNome, quantidade, total
 const listaItensEl = document.getElementById('lista-itens-pedido');
 const pedidoTotalEl = document.getElementById('pedido-total');
 
+let editMode = false; // quando true, mostra o "-" nos cards
+
+const btnEditPedidos = document.getElementById('fab-edit-pedidos');
+if (btnEditPedidos) {
+  btnEditPedidos.addEventListener('click', () => {
+    editMode = !editMode;
+    renderizarItensPedido();
+  });
+}
+
+
 function renderizarItensPedido() {
   if (!listaItensEl) return;
 
@@ -316,22 +327,72 @@ function renderizarItensPedido() {
     return;
   }
 
-  let total = 0;
+  // ---- agrupa itens por cliente ----
+  const grupos = {}; // chave: clienteNome
 
-  const html = pedidoItens.map((item, idx) => {
-    total += item.totalVenda;
+  pedidoItens.forEach(item => {
+    const key = item.clienteNome && item.clienteNome.trim()
+      ? item.clienteNome.trim()
+      : '(sem cliente)';
+
+    if (!grupos[key]) {
+      grupos[key] = {
+        clienteNome: key,
+        itens: [],
+        totalVenda: 0,
+        totalCusto: 0
+      };
+    }
+
+    grupos[key].itens.push(item);
+    grupos[key].totalVenda += item.totalVenda;
+    grupos[key].totalCusto += item.totalCusto;
+  });
+
+  const gruposArr = Object.values(grupos);
+
+  // ---- total global ----
+  let totalGlobal = 0;
+  gruposArr.forEach(g => totalGlobal += g.totalVenda);
+
+  // ---- monta HTML dos cards, 1 por cliente ----
+  const html = gruposArr.map((grupo, idx) => {
+    // resumo: Quadro (2), Caneca (3)...
+    const porProduto = {};
+    grupo.itens.forEach(it => {
+      porProduto[it.produtoNome] = (porProduto[it.produtoNome] || 0) + it.quantidade;
+    });
+    const resumoProdutos = Object.entries(porProduto)
+      .map(([nome, qtd]) => `${nome} (${qtd})`)
+      .join(', ');
+
+    // detalhes completos (expandido quando clica no card)
+    const detalhes = grupo.itens.map(it => {
+      return `
+        <li>
+          ${it.produtoNome} — Qtd: ${it.quantidade}
+          • Venda: R$ ${it.totalVenda.toFixed(2)}
+          • Custo: R$ ${it.totalCusto.toFixed(2)}
+        </li>
+      `;
+    }).join('');
+
     return `
-      <div class="item-card">
-        <div class="item-row">
-          <span class="item-title">${item.produtoNome}</span>
-          <span class="badge badge-venda">Qtd: ${item.quantidade}</span>
+      <div class="item-card pedido-group-card" data-grupo-idx="${idx}">
+        <div class="pedido-group-header item-row">
+          <span class="item-title">${grupo.clienteNome}</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="badge badge-venda">R$ ${grupo.totalVenda.toFixed(2)}</span>
+            ${editMode ? `<button type="button" class="btn-remove-group" data-remover-grupo="${idx}">−</button>` : ''}
+          </div>
         </div>
-        <div class="item-meta">
-          Cliente: ${item.clienteNome || '(não definido)'}<br>
-          Venda: R$ ${item.totalVenda.toFixed(2)} • Custo: R$ ${item.totalCusto.toFixed(2)}
+        <div class="pedido-summary">
+          Itens: ${resumoProdutos || '—'}
         </div>
-        <div class="item-actions">
-          <button type="button" class="btn-text btn-text-danger" data-remover-item="${idx}">Remover</button>
+        <div class="pedido-detalhes">
+          <ul>
+            ${detalhes}
+          </ul>
         </div>
       </div>
     `;
@@ -339,9 +400,44 @@ function renderizarItensPedido() {
 
   listaItensEl.innerHTML = html;
 
+  // atualiza total global embaixo
   if (pedidoTotalEl) {
-    pedidoTotalEl.textContent = `Total do pedido: R$ ${total.toFixed(2)}`;
+    pedidoTotalEl.textContent = `Total do pedido: R$ ${totalGlobal.toFixed(2)}`;
   }
+
+  // clique no card -> abre/fecha detalhes
+  listaItensEl.querySelectorAll('.pedido-group-card').forEach(card => {
+    card.addEventListener('click', () => {
+      card.classList.toggle('open');
+    });
+  });
+
+  // modo edição: botão "-" remove todos os itens daquele cliente
+  if (editMode) {
+    const gruposRef = gruposArr; // pra usar dentro do handler
+
+    listaItensEl.querySelectorAll('[data-remover-grupo]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation(); // não abrir/fechar detalhes ao clicar no "-"
+
+        const idx = parseInt(btn.dataset.removerGrupo, 10);
+        if (isNaN(idx)) return;
+
+        const grupo = gruposRef[idx];
+        const key = grupo.clienteNome;
+
+        pedidoItens = pedidoItens.filter(it => {
+          const k = it.clienteNome && it.clienteNome.trim()
+            ? it.clienteNome.trim()
+            : '(sem cliente)';
+          return k !== key;
+        });
+
+        renderizarItensPedido();
+      });
+    });
+  }
+}
 
   // remover item
   listaItensEl.querySelectorAll('[data-remover-item]').forEach(btn => {
