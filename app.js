@@ -181,16 +181,61 @@ document.querySelectorAll('.fab-add').forEach(btn => {
   btn.addEventListener('click', () => {
     const ctx = btn.dataset.addContext || 'registro';
 
-    // caso específico: botão de item do pedido
+    // caso específico: item do pedido (modal completo)
     if (btn.id === 'fab-add-item') {
       abrirModalItem();
       return;
     }
 
-    // outros + continuam só com mensagem por enquanto
-    alert('Aqui vai abrir o formulário para adicionar ' + ctx + '.');
+    // demais "+" usam modal genérico
+    abrirModalGenerico(ctx);
   });
 });
+
+// --- MODAL GENÉRICO PARA DEMAIS "+" ---
+const modalGeneric = document.getElementById('modal-generic');
+const modalGenericTitle = document.getElementById('modal-generic-title');
+const modalGenericText = document.getElementById('modal-generic-text');
+const modalGenericClose = document.getElementById('modal-generic-close');
+const modalGenericCancel = document.getElementById('modal-generic-cancel');
+const modalGenericSave = document.getElementById('modal-generic-save');
+const modalGenericNome = document.getElementById('modal-generic-nome');
+const modalGenericNotas = document.getElementById('modal-generic-notas');
+
+function abrirModalGenerico(contexto) {
+  if (!modalGeneric) return;
+
+  modalGenericTitle.textContent = 'Adicionar ' + contexto;
+  modalGenericText.textContent =
+    'Este é o formulário inicial para adicionar ' + contexto + '. ' +
+    'Depois vamos detalhar campos específicos para cada tipo.';
+
+  // limpa campos
+  if (modalGenericNome) modalGenericNome.value = '';
+  if (modalGenericNotas) modalGenericNotas.value = '';
+
+  modalGeneric.classList.add('visible');
+}
+
+function fecharModalGenerico() {
+  if (!modalGeneric) return;
+  modalGeneric.classList.remove('visible');
+}
+
+if (modalGenericClose) {
+  modalGenericClose.addEventListener('click', fecharModalGenerico);
+}
+if (modalGenericCancel) {
+  modalGenericCancel.addEventListener('click', fecharModalGenerico);
+}
+if (modalGenericSave) {
+  modalGenericSave.addEventListener('click', () => {
+    // aqui no futuro vamos realmente salvar (Firebase, lista etc.)
+    // por enquanto só fecha pra dar feedback visual
+    fecharModalGenerico();
+  });
+}
+
 
 // --- Novo Pedido: modal de itens e listagem ---
 let pedidoItens = [];
