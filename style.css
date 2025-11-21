@@ -48,6 +48,7 @@ body {
   display: none;
   flex: 1;
   padding: 16px 16px 80px;
+  position: relative;
 }
 
 .view.active {
@@ -745,20 +746,6 @@ input:focus {
     box-shadow: 0 18px 40px rgba(0,0,0,0.15);
     overflow: hidden;
   }
-}
-
-/* botão de linha para adicionar item */
-.btn-line {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px dashed var(--border-soft);
-  background: #f8f9ff;
-  padding: 10px;
-  font-size: 0.9rem;
-  color: var(--primary);
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
 }
 
 /* view de novo pedido precisa ser relativa para o botão flutuante */
