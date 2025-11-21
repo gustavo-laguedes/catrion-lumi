@@ -2,508 +2,9 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Lumi - Orçamentos</title>
+  <title>Catrion Lumi - Orçamentos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root {
-      --bg: #f5f6fb;
-      --card: #ffffff;
-      --primary: #6c63ff;
-      --primary-soft: #e4e2ff;
-      --accent: #ffb6b9;
-      --text-main: #2f3340;
-      --text-muted: #8a8fa3;
-      --border-soft: #e0e3f0;
-      --danger: #ff6b6b;
-      --success: #4caf50;
-      --shadow-soft: 0 10px 25px rgba(0,0,0,0.06);
-      --radius-lg: 18px;
-      --radius-md: 12px;
-      --radius-pill: 999px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    body {
-      background: radial-gradient(circle at top, #f9f8ff, #f2f4fb);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-    }
-
-    .app {
-      width: 100%;
-      max-width: 480px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    /* VIEWS GENÉRICAS */
-    .view {
-      display: none;
-      flex: 1;
-      padding: 16px 16px 80px;
-    }
-
-    .view.active {
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* TELAS DE AUTENTICAÇÃO */
-    .auth-wrapper {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 24px 20px 32px;
-      gap: 24px;
-    }
-
-    .auth-card {
-      background: var(--card);
-      border-radius: 24px;
-      padding: 24px 18px 20px;
-      box-shadow: var(--shadow-soft);
-    }
-
-    .logo-lumi-auth {
-      text-align: center;
-      margin-bottom: 18px;
-    }
-
-    .logo-lumi-auth span {
-      display: inline-block;
-      padding: 10px 16px;
-      border-radius: var(--radius-pill);
-      background: linear-gradient(135deg, #ffb6b9, #ffc6ff);
-      color: #442b39;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      font-size: 0.9rem;
-    }
-
-    .auth-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-      text-align: center;
-    }
-
-    .auth-subtitle {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      text-align: center;
-      margin-bottom: 18px;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      font-size: 0.85rem;
-      margin-bottom: 4px;
-      color: var(--text-muted);
-    }
-
-    input[type="email"],
-    input[type="password"],
-    input[type="text"] {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid var(--border-soft);
-      padding: 10px 12px;
-      font-size: 0.95rem;
-      outline: none;
-      background: #fdfdff;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-      background: #ffffff;
-    }
-
-    .auth-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 6px 0 14px;
-      font-size: 0.8rem;
-    }
-
-    .checkbox-inline {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
-    }
-
-    .checkbox-inline input {
-      width: 16px;
-      height: 16px;
-    }
-
-    .link {
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 500;
-      cursor: pointer;
-    }
-
-    .link:hover {
-      text-decoration: underline;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 14px;
-      padding: 11px 14px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.08s ease, box-shadow 0.1s ease, background 0.1s ease;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), #8e87ff);
-      color: #fff;
-      width: 100%;
-      box-shadow: 0 10px 20px rgba(108, 99, 255, 0.25);
-    }
-
-    .btn-primary:active {
-      transform: translateY(1px);
-      box-shadow: 0 4px 12px rgba(108, 99, 255, 0.25);
-    }
-
-    .auth-footer {
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    .auth-footer .link {
-      font-size: 0.9rem;
-    }
-
-    /* HEADER (APÓS LOGIN) */
-    .app-header {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 16px 6px;
-      column-gap: 12px;
-    }
-
-    .app-header.visible {
-      display: flex;
-    }
-
-    .logo-lumi-top {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .logo-lumi-top-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #ffb6b9, #ffc6ff);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #442b39;
-    }
-
-    .logo-lumi-top-text {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .logo-empresa-top {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px dashed var(--border-soft);
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-      max-width: 52%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* HOME */
-    .home-scroll {
-      flex: 1;
-      overflow-y: auto;
-      padding-top: 8px;
-    }
-
-    .section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .section-subtitle {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .home-section {
-      background: rgba(255,255,255,0.9);
-      border-radius: 20px;
-      padding: 14px 12px 12px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(255,255,255,0.5);
-    }
-
-    .home-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .tile-btn {
-      border-radius: 14px;
-      padding: 10px 10px 9px;
-      border: 1px solid var(--border-soft);
-      background: #fbfbff;
-      font-size: 0.85rem;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      transition: background 0.1s ease, transform 0.08s ease, box-shadow 0.08s ease;
-    }
-
-    .tile-btn span.title {
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .tile-btn span.caption {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .tile-btn.highlight {
-      background: var(--primary-soft);
-      border-color: #cbc7ff;
-    }
-
-    .tile-btn:active {
-      transform: translateY(1px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-
-    .home-section.config {
-      margin-top: 4px;
-    }
-
-    .config-btn {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 6px;
-      border-radius: 14px;
-      border: 1px dashed var(--border-soft);
-      padding: 9px 10px;
-      background: #fbfbff;
-      cursor: pointer;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-
-    /* CARDS GENÉRICOS (PEDIDOS, VENDAS, AGENDA, ETC) */
-    .list {
-      flex: 1;
-      overflow-y: auto;
-      margin-top: 4px;
-    }
-
-    .list-header {
-      margin-bottom: 10px;
-    }
-
-    .list-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .list-subtitle {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .item-card {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 10px 11px;
-      margin-bottom: 8px;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.04);
-      border: 1px solid var(--border-soft);
-      font-size: 0.85rem;
-    }
-
-    .item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 3px;
-    }
-
-    .item-title {
-      font-weight: 600;
-    }
-
-    .badge {
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-
-    .badge-pendente {
-      background: #fff3cd;
-      color: #886300;
-    }
-
-    .badge-agenda {
-      background: #e0f7fa;
-      color: #00676b;
-    }
-
-    .badge-venda {
-      background: #e8f5e9;
-      color: #27632a;
-    }
-
-    .item-meta {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .item-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 6px;
-      margin-top: 6px;
-    }
-
-    .btn-text {
-      border: none;
-      background: transparent;
-      font-size: 0.78rem;
-      color: var(--primary);
-      cursor: pointer;
-      padding: 3px 6px;
-    }
-
-    .btn-text-danger {
-      color: var(--danger);
-    }
-
-    /* BARRA DE NAVEGAÇÃO INFERIOR */
-    .bottom-nav {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 10px;
-      width: 100%;
-      max-width: 480px;
-      padding: 0 12px;
-      display: none;
-    }
-
-    .bottom-nav-inner {
-      background: rgba(255,255,255,0.96);
-      border-radius: 999px;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.12);
-      border: 1px solid rgba(224,227,240,0.8);
-      display: flex;
-      justify-content: space-around;
-      padding: 6px 4px;
-    }
-
-    .bottom-nav.visible {
-      display: block;
-    }
-
-    .nav-item {
-      flex: 1;
-      border-radius: 999px;
-      border: none;
-      background: transparent;
-      padding: 6px 4px;
-      margin: 0 2px;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .nav-item span.label {
-      white-space: nowrap;
-    }
-
-    .nav-item.active {
-      background: var(--primary-soft);
-      color: var(--primary);
-      font-weight: 600;
-    }
-
-    /* PEQUENOS AJUSTES */
-    .pill-tag {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.8);
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
-
-    .spacer-sm {
-      height: 8px;
-    }
-
-    .spacer-md {
-      height: 14px;
-    }
-
-    @media (min-width: 768px) {
-      .app {
-        margin: 16px 0;
-        border-radius: 24px;
-        box-shadow: 0 18px 40px rgba(0,0,0,0.15);
-        overflow: hidden;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app">
@@ -524,7 +25,10 @@
           </div>
           <div class="form-group">
             <label for="login-senha">Senha</label>
-            <input type="password" id="login-senha" placeholder="Digite sua senha">
+            <div class="input-with-toggle">
+              <input type="password" id="login-senha" placeholder="Digite sua senha">
+              <button class="toggle-pass" type="button" data-target="login-senha">👁</button>
+            </div>
           </div>
 
           <div class="auth-row">
@@ -571,7 +75,17 @@
           </div>
           <div class="form-group">
             <label for="reg-senha">Senha</label>
-            <input type="password" id="reg-senha" placeholder="Crie uma senha">
+            <div class="input-with-toggle">
+              <input type="password" id="reg-senha" placeholder="Crie uma senha">
+              <button class="toggle-pass" type="button" data-target="reg-senha">👁</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-senha-confirma">Confirmar senha</label>
+            <div class="input-with-toggle">
+              <input type="password" id="reg-senha-confirma" placeholder="Repita a senha">
+              <button class="toggle-pass" type="button" data-target="reg-senha-confirma">👁</button>
+            </div>
           </div>
 
           <button class="btn btn-primary" type="button" id="btn-registrar">
@@ -676,7 +190,7 @@
       </div>
     </section>
 
-    <!-- NOVO PEDIDO (ESQUELETO) -->
+    <!-- NOVO PEDIDO -->
     <section class="view" data-view="novo-pedido">
       <div class="list-header">
         <span class="pill-tag">Registrar</span>
@@ -688,7 +202,7 @@
       </div>
     </section>
 
-    <!-- FINANÇAS (Lançamentos – esqueleto) -->
+    <!-- FINANÇAS -->
     <section class="view" data-view="financas">
       <div class="list-header">
         <span class="pill-tag">Finanças</span>
@@ -699,23 +213,33 @@
       </div>
     </section>
 
-    <!-- AGENDA (esqueleto da visualização) -->
+    <!-- AGENDA (CALENDÁRIO) -->
     <section class="view" data-view="agenda">
       <div class="list-header">
         <span class="pill-tag">Agenda</span>
         <div class="list-title">Agenda</div>
         <div class="list-subtitle">
-          Visualização das atividades de produção e entregas.
+          Visualização mensal das atividades de produção e entregas.
         </div>
       </div>
-      <div class="list">
-        <div class="item-card">
-          <div class="item-row">
-            <span class="item-title">Pedido #123 - Caneca personalizada</span>
-            <span class="badge badge-agenda">Hoje • 16h</span>
+      <div class="agenda-wrapper">
+        <div class="agenda-header-row">
+          <button class="agenda-month-btn" type="button" id="agenda-prev">&lt;</button>
+          <div class="agenda-month-label" id="agenda-month-label">mês/ano</div>
+          <button class="agenda-month-btn" type="button" id="agenda-next">&gt;</button>
+        </div>
+        <div class="agenda-weekdays">
+          <div>dom.</div><div>seg.</div><div>ter.</div><div>qua.</div><div>qui.</div><div>sex.</div><div>sáb.</div>
+        </div>
+        <div class="agenda-grid" id="agenda-grid">
+          <!-- dias via JS -->
+        </div>
+        <div class="agenda-legend">
+          <div class="agenda-legend-item">
+            <span class="legend-dot legend-today"></span><span>Hoje</span>
           </div>
-          <div class="item-meta">
-            Produção + entrega para Cliente Exemplo.
+          <div class="agenda-legend-item">
+            <span class="legend-dot legend-event"></span><span>Dia com agendamento</span>
           </div>
         </div>
       </div>
@@ -832,7 +356,7 @@
       </div>
     </section>
 
-    <!-- PEDIDOS (NAV INFERIOR) – só aguardando -->
+    <!-- PEDIDOS -->
     <section class="view" data-view="pedidos">
       <div class="list-header">
         <span class="pill-tag">Pedidos</span>
@@ -858,31 +382,105 @@
       </div>
     </section>
 
-    <!-- VENDAS (NAV INFERIOR) – consulta visual -->
+    <!-- VENDAS (Resumo) -->
     <section class="view" data-view="vendas">
       <div class="list-header">
         <span class="pill-tag">Vendas</span>
-        <div class="list-title">Consulta de vendas</div>
+        <div class="list-title">Resumo de vendas</div>
         <div class="list-subtitle">
-          Filtros e visão rápida das vendas (como um relatório na tela).
+          Visão rápida de pedidos, receitas, despesas e lucro no período.
         </div>
       </div>
-      <div class="list">
-        <div class="item-card">
-          <div class="item-row">
-            <span class="item-title">Venda #2025-0001</span>
-            <span class="badge badge-venda">Concluída</span>
+
+      <div class="vendas-filters">
+        <div class="vendas-filter-row">
+          <button class="vendas-arrow" type="button">&lt;</button>
+          <div class="vendas-filter-chip" id="vendas-periodo-chip">mensal</div>
+          <button class="vendas-arrow" type="button">&gt;</button>
+        </div>
+        <div class="vendas-filter-row">
+          <button class="vendas-arrow" type="button" id="vendas-mes-prev">&lt;</button>
+          <div class="vendas-filter-chip" id="vendas-mes-chip">mês/ano</div>
+          <button class="vendas-arrow" type="button" id="vendas-mes-next">&gt;</button>
+        </div>
+      </div>
+
+      <div class="vendas-pedidos-card">
+        <div class="vendas-pedidos-header">
+          <span>Pedidos</span>
+          <span>Quantidade&nbsp;&nbsp;&nbsp;&nbsp;Valores</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-pendente"></span>
+            <span>Pendente</span>
           </div>
-          <div class="item-meta">
-            Cliente: Ana Paula • R$ 120,00 • 03/11/2025
+          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-aprovacao"></span>
+            <span>Aguardando aprovação</span>
           </div>
+          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-andamento"></span>
+            <span>Em andamento</span>
+          </div>
+          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-pagamento"></span>
+            <span>Aguardando pagamento</span>
+          </div>
+          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-finalizado"></span>
+            <span>Finalizado</span>
+          </div>
+          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-cancelado"></span>
+            <span>Cancelado</span>
+          </div>
+          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+        </div>
+      </div>
+
+      <div class="vendas-summary-grid">
+        <div class="vendas-summary-card">
+          <div class="vendas-summary-value">0,00</div>
+          <div class="vendas-summary-label">Receitas</div>
+        </div>
+        <div class="vendas-summary-card">
+          <div class="vendas-summary-value">0,00</div>
+          <div class="vendas-summary-label">Despesas</div>
+        </div>
+        <div class="vendas-summary-card">
+          <div class="vendas-summary-value">0,00</div>
+          <div class="vendas-summary-label">Custo Produtos</div>
+        </div>
+        <div class="vendas-summary-card">
+          <div class="vendas-summary-value">0,00</div>
+          <div class="vendas-summary-label">Lucro Líq.</div>
         </div>
       </div>
     </section>
 
-    <!-- AGENDA (NAV INFERIOR) já foi criada – reutilizamos data-view="agenda" -->
-
-    <!-- BOTTOM NAV -->
+    <!-- NAV INFERIOR -->
     <nav class="bottom-nav" id="bottom-nav">
       <div class="bottom-nav-inner">
         <button class="nav-item active" data-target-view="home">
@@ -901,87 +499,6 @@
     </nav>
   </div>
 
-  <script>
-    const views = document.querySelectorAll('.view');
-    const header = document.getElementById('app-header');
-    const bottomNav = document.getElementById('bottom-nav');
-
-    function showView(name) {
-      views.forEach(v => {
-        if (v.dataset.view === name) {
-          v.classList.add('active');
-        } else {
-          v.classList.remove('active');
-        }
-      });
-
-      // Mostrar header e nav só se não for login/cadastro
-      const authViews = ['login', 'register'];
-      const isAuth = authViews.includes(name);
-      if (isAuth) {
-        header.classList.remove('visible');
-        bottomNav.classList.remove('visible');
-      } else {
-        header.classList.add('visible');
-        bottomNav.classList.add('visible');
-      }
-
-      // Atualizar estado da nav inferior
-      document.querySelectorAll('.nav-item').forEach(btn => {
-        const target = btn.dataset.targetView;
-        if (target === name) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
-
-    // LOGIN / CADASTRO
-    document.getElementById('link-cadastro').addEventListener('click', () => {
-      showView('register');
-    });
-
-    document.getElementById('link-voltar-login').addEventListener('click', () => {
-      showView('login');
-    });
-
-    document.getElementById('btn-login').addEventListener('click', () => {
-      // depois isso aqui será autenticado no Firebase
-      showView('home');
-    });
-
-    document.getElementById('btn-registrar').addEventListener('click', () => {
-      // futuro: criar usuário no Firebase, enviar e-mail, etc.
-      // por enquanto, volta para o login
-      showView('login');
-    });
-
-    // BOTÕES DA HOME (tile-btn e config)
-    document.querySelectorAll('[data-target-view]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.targetView;
-        if (target) {
-          showView(target);
-        }
-      });
-    });
-
-    // NAVEGAÇÃO INFERIOR
-    document.querySelectorAll('.nav-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = btn.dataset.targetView;
-        if (target) {
-          showView(target);
-        }
-      });
-    });
-
-    // Colocar um e-mail fake na tela de configurações por enquanto
-    const configEmail = document.getElementById('config-email');
-    if (configEmail) {
-      configEmail.textContent = 'email@exemplo.com';
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
