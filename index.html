@@ -220,55 +220,42 @@
     <div id="lista-itens-pedido">
       <p class="item-meta">Nenhum item adicionado ainda. Toque em “+” para incluir.</p>
     </div>
+
+     <!-- total do pedido -->
+    <div id="pedido-total" class="pedido-total">
+      Total do pedido: R$ 0,00
+    </div>
   </div>
 
   <!-- botão flutuante para adicionar item -->
   <button class="fab-add" type="button" data-add-context="item do pedido" id="fab-add-item">+</button>
 
-  <!-- MODAL de adicionar item -->
+    <!-- MODAL de adicionar item -->
   <div class="modal-backdrop" id="modal-item">
     <div class="modal">
       <div class="modal-header">
-        <span>Adicionar item</span>
+        <span>Adicionar itens ao pedido</span>
         <button type="button" class="modal-close" id="modal-item-fechar">×</button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-          <label for="item-produto">Produto</label>
-          <input type="text" id="item-produto" placeholder="Ex: Caixa personalizada">
-        </div>
-        <div class="form-row-2">
-          <div class="form-group">
-            <label for="item-quantidade">Quantidade</label>
-            <input type="number" id="item-quantidade" min="1" value="1">
-          </div>
-          <div class="form-group">
-            <label for="item-preco">Preço unitário (R$)</label>
-            <input type="number" id="item-preco" min="0" step="0.01" value="0">
-          </div>
-        </div>
-        <div class="form-row-2">
-          <div class="form-group">
-            <label for="item-tempo">Tempo (min)</label>
-            <input type="number" id="item-tempo" min="0" step="1" value="0">
-          </div>
-          <div class="form-group">
-            <label for="item-energia">Energia (kWh)</label>
-            <input type="number" id="item-energia" min="0" step="0.01" value="0">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="item-obs">Observações</label>
-          <textarea id="item-obs" rows="2" placeholder="Detalhes importantes do item"></textarea>
+        <p class="item-meta" style="margin-bottom:8px;">
+          Escolha um ou mais produtos e informe apenas a quantidade. O preço unitário será puxado do cadastro.
+        </p>
+
+        <!-- container para várias linhas de produto + quantidade -->
+        <div id="itens-multi-container">
+          <!-- linhas são criadas via JS -->
         </div>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn-text" id="modal-item-add-row">+ Adicionar produto</button>
         <button type="button" class="btn-text" id="modal-item-cancelar">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="modal-item-salvar">Adicionar</button>
+        <button type="button" class="btn btn-primary" id="modal-item-salvar">Adicionar ao pedido</button>
       </div>
     </div>
   </div>
 </section>
+
 
 
 
