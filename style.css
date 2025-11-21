@@ -852,3 +852,37 @@ textarea:focus {
   margin-top: 4px;
 }
 
+/* linha do modal com produto + quantidade */
+.item-modal-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* select com visual parecido do input */
+select {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  outline: none;
+  background: #fdfdff;
+}
+
+select:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+/* total do pedido */
+.pedido-total {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
