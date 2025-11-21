@@ -17,11 +17,11 @@ function showView(name) {
   const authViews = ['login', 'register'];
   const isAuth = authViews.includes(name);
   if (isAuth) {
-    header.classList.remove('visible');
-    bottomNav.classList.remove('visible');
+    if (header) header.classList.remove('visible');
+    if (bottomNav) bottomNav.classList.remove('visible');
   } else {
-    header.classList.add('visible');
-    bottomNav.classList.add('visible');
+    if (header) header.classList.add('visible');
+    if (bottomNav) bottomNav.classList.add('visible');
   }
 
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -37,22 +37,26 @@ function showView(name) {
 // =========================
 // LOGIN / CADASTRO
 // =========================
-document.getElementById('link-cadastro').addEventListener('click', () => {
-  showView('register');
-});
+const linkCadastro = document.getElementById('link-cadastro');
+const linkVoltarLogin = document.getElementById('link-voltar-login');
+const btnLogin = document.getElementById('btn-login');
+const btnRegistrar = document.getElementById('btn-registrar');
 
-document.getElementById('link-voltar-login').addEventListener('click', () => {
-  showView('login');
-});
-
-document.getElementById('btn-login').addEventListener('click', () => {
-  showView('home');
-});
-
-document.getElementById('btn-registrar').addEventListener('click', () => {
-  // depois vamos validar senha e chamar Firebase
-  showView('login');
-});
+if (linkCadastro) {
+  linkCadastro.addEventListener('click', () => showView('register'));
+}
+if (linkVoltarLogin) {
+  linkVoltarLogin.addEventListener('click', () => showView('login'));
+}
+if (btnLogin) {
+  btnLogin.addEventListener('click', () => showView('home'));
+}
+if (btnRegistrar) {
+  btnRegistrar.addEventListener('click', () => {
+    // depois vamos validar senha e chamar Firebase
+    showView('login');
+  });
+}
 
 // BOTÕES com data-target-view (home, config, etc)
 document.querySelectorAll('[data-target-view]').forEach(btn => {
@@ -104,10 +108,8 @@ let today = new Date();
 let calMonth = today.getMonth();
 let calYear = today.getFullYear();
 
-// Exemplo: depois vamos preencher com dados reais de agenda
-const agendaEventos = {
-  // '2025-11-21': true
-};
+// depois vamos preencher com dados reais de agenda
+const agendaEventos = {};
 
 function renderAgenda() {
   if (!agendaGrid || !agendaLabel) return;
@@ -224,7 +226,6 @@ function abrirModalGenerico(contexto) {
     'Este é o formulário inicial para adicionar ' + contexto + '. ' +
     'Depois vamos detalhar campos específicos para cada tipo.';
 
-  // limpa campos
   if (modalGenericNome) modalGenericNome.value = '';
   if (modalGenericNotas) modalGenericNotas.value = '';
 
@@ -249,7 +250,7 @@ if (modalGenericSave) {
 }
 
 // =========================
-// MÊS NA TELA DE VENDAS
+/* MÊS NA TELA DE VENDAS */
 // =========================
 const vendasMesChip = document.getElementById('vendas-mes-chip');
 const vendasMesPrev = document.getElementById('vendas-mes-prev');
@@ -307,8 +308,8 @@ let pedidoItens = []; // cada item: {clienteNome, produtoNome, quantidade, total
 const listaItensEl = document.getElementById('lista-itens-pedido');
 const pedidoTotalEl = document.getElementById('pedido-total');
 
-let editMode = false; // quando true, mostra o "-" nos cards
-
+// modo edição (canetinha)
+let editMode = false;
 const btnEditPedidos = document.getElementById('fab-edit-pedidos');
 if (btnEditPedidos) {
   btnEditPedidos.addEventListener('click', () => {
@@ -316,7 +317,6 @@ if (btnEditPedidos) {
     renderizarItensPedido();
   });
 }
-
 
 function renderizarItensPedido() {
   if (!listaItensEl) return;
@@ -327,8 +327,8 @@ function renderizarItensPedido() {
     return;
   }
 
-  // ---- agrupa itens por cliente ----
-  const grupos = {}; // chave: clienteNome
+  // agrupa itens por cliente
+  const grupos = {};
 
   pedidoItens.forEach(item => {
     const key = item.clienteNome && item.clienteNome.trim()
@@ -351,31 +351,27 @@ function renderizarItensPedido() {
 
   const gruposArr = Object.values(grupos);
 
-  // ---- total global ----
+  // total global
   let totalGlobal = 0;
   gruposArr.forEach(g => totalGlobal += g.totalVenda);
 
-  // ---- monta HTML dos cards, 1 por cliente ----
   const html = gruposArr.map((grupo, idx) => {
-    // resumo: Quadro (2), Caneca (3)...
     const porProduto = {};
     grupo.itens.forEach(it => {
       porProduto[it.produtoNome] = (porProduto[it.produtoNome] || 0) + it.quantidade;
     });
+
     const resumoProdutos = Object.entries(porProduto)
       .map(([nome, qtd]) => `${nome} (${qtd})`)
       .join(', ');
 
-    // detalhes completos (expandido quando clica no card)
-    const detalhes = grupo.itens.map(it => {
-      return `
-        <li>
-          ${it.produtoNome} — Qtd: ${it.quantidade}
-          • Venda: R$ ${it.totalVenda.toFixed(2)}
-          • Custo: R$ ${it.totalCusto.toFixed(2)}
-        </li>
-      `;
-    }).join('');
+    const detalhes = grupo.itens.map(it => `
+      <li>
+        ${it.produtoNome} — Qtd: ${it.quantidade}
+        • Venda: R$ ${it.totalVenda.toFixed(2)}
+        • Custo: R$ ${it.totalCusto.toFixed(2)}
+      </li>
+    `).join('');
 
     return `
       <div class="item-card pedido-group-card" data-grupo-idx="${idx}">
@@ -400,26 +396,23 @@ function renderizarItensPedido() {
 
   listaItensEl.innerHTML = html;
 
-  // atualiza total global embaixo
   if (pedidoTotalEl) {
     pedidoTotalEl.textContent = `Total do pedido: R$ ${totalGlobal.toFixed(2)}`;
   }
 
-  // clique no card -> abre/fecha detalhes
+  // abrir/fechar detalhes
   listaItensEl.querySelectorAll('.pedido-group-card').forEach(card => {
     card.addEventListener('click', () => {
       card.classList.toggle('open');
     });
   });
 
-  // modo edição: botão "-" remove todos os itens daquele cliente
+  // modo edição: remover grupo
   if (editMode) {
-    const gruposRef = gruposArr; // pra usar dentro do handler
-
+    const gruposRef = gruposArr;
     listaItensEl.querySelectorAll('[data-remover-grupo]').forEach(btn => {
       btn.addEventListener('click', e => {
-        e.stopPropagation(); // não abrir/fechar detalhes ao clicar no "-"
-
+        e.stopPropagation();
         const idx = parseInt(btn.dataset.removerGrupo, 10);
         if (isNaN(idx)) return;
 
@@ -439,19 +432,7 @@ function renderizarItensPedido() {
   }
 }
 
-  // remover item
-  listaItensEl.querySelectorAll('[data-remover-item]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.removerItem, 10);
-      if (!isNaN(idx)) {
-        pedidoItens.splice(idx, 1);
-        renderizarItensPedido();
-      }
-    });
-  });
-}
-
-// render inicial (sem itens)
+// render inicial
 renderizarItensPedido();
 
 // =========================
@@ -474,20 +455,14 @@ const infoEst = document.getElementById('info-estado');
 function abrirModalItem() {
   if (!modalItem) return;
 
-  // limpa cliente
-  if (campoBuscaCliente) {
-    campoBuscaCliente.value = '';
-  }
-  if (clienteInfoCard) {
-    clienteInfoCard.style.display = 'none';
-  }
+  if (campoBuscaCliente) campoBuscaCliente.value = '';
+  if (clienteInfoCard) clienteInfoCard.style.display = 'none';
   if (listaClientesEl) {
     listaClientesEl.innerHTML = '';
     listaClientesEl.style.display = 'none';
   }
 
-  // limpa produtos dentro do modal
-  limparProdutosDoPedido();
+  limparProdutosDoPedidoModal();
   adicionarProdutoLinha();
   atualizarTotaisModal();
 
@@ -499,7 +474,7 @@ function fecharModalItem() {
   modalItem.classList.remove('visible');
 }
 
-function limparProdutosDoPedido() {
+function limparProdutosDoPedidoModal() {
   const container = document.getElementById('pedido-produtos-container');
   if (container) container.innerHTML = '';
 }
@@ -579,7 +554,6 @@ function configurarBuscaCliente() {
         listaClientesEl.appendChild(item);
       });
 
-    // opção de cadastrar cliente
     const addItem = document.createElement('div');
     addItem.className = 'autocomplete-item';
     addItem.textContent = '+ Cadastrar cliente';
@@ -631,7 +605,6 @@ function configurarBuscaProduto(divProduto) {
         lista.appendChild(item);
       });
 
-    // opção cadastrar produto
     const addItem = document.createElement('div');
     addItem.className = 'autocomplete-item';
     addItem.textContent = '+ Cadastrar produto';
