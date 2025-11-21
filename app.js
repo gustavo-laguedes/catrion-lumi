@@ -236,6 +236,13 @@ if (modalGenericSave) {
   });
 }
 
+// Catálogo temporário de produtos (depois vai vir do cadastro/Firebase)
+const produtosCatalogo = [
+  { id: 'p1', nome: 'Caixa personalizada', preco: 50.00 },
+  { id: 'p2', nome: 'Caneca floral', preco: 35.00 },
+  { id: 'p3', nome: 'Quadro decorativo', preco: 80.00 }
+];
+
 
 // --- Novo Pedido: modal de itens e listagem ---
 let pedidoItens = [];
@@ -244,17 +251,51 @@ const modalItem = document.getElementById('modal-item');
 const btnModalFechar = document.getElementById('modal-item-fechar');
 const btnModalCancelar = document.getElementById('modal-item-cancelar');
 const btnModalSalvar = document.getElementById('modal-item-salvar');
+const btnModalAddRow = document.getElementById('modal-item-add-row');
+const itensMultiContainer = document.getElementById('itens-multi-container');
 const listaItensEl = document.getElementById('lista-itens-pedido');
+const pedidoTotalEl = document.getElementById('pedido-total');
+
+function preencherSelectProdutos(selectEl) {
+  if (!selectEl) return;
+  selectEl.innerHTML = '<option value="">— selecione —</option>';
+  produtosCatalogo.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = `${p.nome} — R$ ${p.preco.toFixed(2)}`;
+    selectEl.appendChild(opt);
+  });
+}
+
+function criarLinhaItem() {
+  if (!itensMultiContainer) return;
+
+  const row = document.createElement('div');
+  row.classList.add('item-modal-row');
+
+  row.innerHTML = `
+    <div class="form-group">
+      <label>Produto</label>
+      <select class="item-produto-select"></select>
+    </div>
+    <div class="form-group">
+      <label>Qtd.</label>
+      <input type="number" class="item-quantidade-input" min="1" value="1">
+    </div>
+  `;
+
+  itensMultiContainer.appendChild(row);
+
+  const select = row.querySelector('.item-produto-select');
+  preencherSelectProdutos(select);
+}
 
 function abrirModalItem() {
-  if (!modalItem) return;
-  // limpa campos básicos
-  document.getElementById('item-produto').value = '';
-  document.getElementById('item-quantidade').value = 1;
-  document.getElementById('item-preco').value = 0;
-  document.getElementById('item-tempo').value = 0;
-  document.getElementById('item-energia').value = 0;
-  document.getElementById('item-obs').value = '';
+  if (!modalItem || !itensMultiContainer) return;
+
+  // limpa todas as linhas e cria uma nova
+  itensMultiContainer.innerHTML = '';
+  criarLinhaItem();
 
   modalItem.classList.add('visible');
 }
@@ -264,11 +305,22 @@ function fecharModalItem() {
   modalItem.classList.remove('visible');
 }
 
+function calcularTotalPedido() {
+  const total = pedidoItens.reduce((acc, item) => {
+    return acc + (item.quantidade * item.preco);
+  }, 0);
+
+  if (pedidoTotalEl) {
+    pedidoTotalEl.textContent = `Total do pedido: R$ ${total.toFixed(2)}`;
+  }
+}
+
 function renderizarItensPedido() {
   if (!listaItensEl) return;
 
   if (!pedidoItens.length) {
     listaItensEl.innerHTML = '<p class="item-meta">Nenhum item adicionado ainda. Toque em “+” para incluir.</p>';
+    calcularTotalPedido();
     return;
   }
 
@@ -277,15 +329,14 @@ function renderizarItensPedido() {
     return `
       <div class="item-card">
         <div class="item-row">
-          <span class="item-title">${item.produto}</span>
+          <span class="item-title">${item.produtoNome}</span>
           <span class="badge badge-venda">Qtd: ${item.quantidade}</span>
         </div>
         <div class="item-meta">
-          Preço unit.: R$ ${item.preco.toFixed(2)} • Total: R$ ${total.toFixed(2)}<br>
-          Tempo: ${item.tempo} min • Energia: ${item.energia} kWh
+          Preço unit.: R$ ${item.preco.toFixed(2)} • Total: R$ ${total.toFixed(2)}
         </div>
-        ${item.obs ? `<div class="item-meta">Obs.: ${item.obs}</div>` : ''}
         <div class="item-actions">
+          <button type="button" class="btn-text" data-editar-item="${idx}">✏️ Editar</button>
           <button type="button" class="btn-text btn-text-danger" data-remover-item="${idx}">Remover</button>
         </div>
       </div>
@@ -294,7 +345,7 @@ function renderizarItensPedido() {
 
   listaItensEl.innerHTML = html;
 
-  // adiciona eventos de remover
+  // eventos de remover
   listaItensEl.querySelectorAll('[data-remover-item]').forEach(btn => {
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.removerItem, 10);
@@ -304,46 +355,70 @@ function renderizarItensPedido() {
       }
     });
   });
+
+  // eventos de editar (por enquanto só um alerta / placeholder)
+  listaItensEl.querySelectorAll('[data-editar-item]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.editarItem, 10);
+      if (!isNaN(idx)) {
+        alert('Edição de item ainda será implementada. (Item #' + (idx + 1) + ')');
+      }
+    });
+  });
+
+  calcularTotalPedido();
 }
 
-// eventos do modal
+// eventos do modal de itens
 if (btnModalFechar) btnModalFechar.addEventListener('click', fecharModalItem);
 if (btnModalCancelar) btnModalCancelar.addEventListener('click', fecharModalItem);
+if (btnModalAddRow) btnModalAddRow.addEventListener('click', criarLinhaItem);
 
 if (btnModalSalvar) {
   btnModalSalvar.addEventListener('click', () => {
-    const produto = document.getElementById('item-produto').value.trim();
-    const quantidade = Number(document.getElementById('item-quantidade').value || 0);
-    const preco = Number(document.getElementById('item-preco').value || 0);
-    const tempo = Number(document.getElementById('item-tempo').value || 0);
-    const energia = Number(document.getElementById('item-energia').value || 0);
-    const obs = document.getElementById('item-obs').value.trim();
+    if (!itensMultiContainer) return;
 
-    if (!produto) {
-      alert('Informe o nome do produto.');
-      return;
-    }
-    if (quantidade <= 0) {
-      alert('Quantidade deve ser maior que zero.');
-      return;
-    }
+    const rows = itensMultiContainer.querySelectorAll('.item-modal-row');
+    const novosItens = [];
 
-    pedidoItens.push({
-      produto,
-      quantidade,
-      preco,
-      tempo,
-      energia,
-      obs
+    rows.forEach(row => {
+      const select = row.querySelector('.item-produto-select');
+      const qtdInput = row.querySelector('.item-quantidade-input');
+
+      if (!select || !qtdInput) return;
+
+      const produtoId = select.value;
+      const quantidade = Number(qtdInput.value || 0);
+
+      if (!produtoId || quantidade <= 0) {
+        return;
+      }
+
+      const prod = produtosCatalogo.find(p => p.id === produtoId);
+      if (!prod) return;
+
+      novosItens.push({
+        produtoId: prod.id,
+        produtoNome: prod.nome,
+        quantidade,
+        preco: prod.preco
+      });
     });
 
+    if (!novosItens.length) {
+      alert('Selecione pelo menos um produto com quantidade válida.');
+      return;
+    }
+
+    pedidoItens = pedidoItens.concat(novosItens);
     renderizarItensPedido();
     fecharModalItem();
   });
 }
 
-// render inicial (caso queira garantir estado)
+// render inicial
 renderizarItensPedido();
+
 
 
 
