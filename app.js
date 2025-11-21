@@ -177,6 +177,20 @@ if (agendaGrid) {
   renderAgenda();
 }
 
+// --- Novo Pedido: ações do botão + ---
+const btnAddItem = document.getElementById('btn-add-item');
+const fabAddItem = document.getElementById('fab-add-item');
+
+[btnAddItem, fabAddItem].forEach(btn => {
+  if (btn) {
+    btn.addEventListener('click', () => {
+      // depois aqui abre um modal / outra view de cadastro de item
+      alert('Aqui vai abrir o formulário para adicionar um item ao pedido.');
+    });
+  }
+});
+
+
 // --- MÊS NA TELA DE VENDAS ---
 const vendasMesChip = document.getElementById('vendas-mes-chip');
 const vendasMesPrev = document.getElementById('vendas-mes-prev');
