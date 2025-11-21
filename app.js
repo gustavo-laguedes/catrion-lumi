@@ -458,3 +458,153 @@ if (vendasMesPrev && vendasMesNext) {
 }
 
 renderVendasMes();
+
+// -----------------------------
+// BASE DE DADOS TEMPORÁRIA
+// (depois você troca pelo Firebase)
+// -----------------------------
+let clientes = [
+  { nome: "Maria Souza", tel: "12 99999-2222", end: "Rua A, 100", cid: "Taubaté", est: "SP" },
+  { nome: "Ana Paula", tel: "12 98888-1111", end: "Av. B, 345", cid: "Pinda", est: "SP" }
+];
+
+let produtos = [
+  { nome: "Quadro decorativo", preco: 50, custo: 20 },
+  { nome: "Caneca floral", preco: 35, custo: 12 }
+];
+
+// -----------------------------
+function abrirModalPedido() {
+  document.getElementById("modal-pedido").classList.add("visible");
+  limparProdutosDoPedido();
+  adicionarProduto();
+  recalcularTotais();
+}
+
+// -----------------------------
+function fecharModalPedido() {
+  document.getElementById("modal-pedido").classList.remove("visible");
+}
+
+// -----------------------------
+function adicionarProduto() {
+  const container = document.getElementById("pedido-produtos-container");
+
+  const div = document.createElement("div");
+  div.className = "produto-item";
+  div.innerHTML = `
+    <div class="form-group">
+      <label>Produto</label>
+      <input type="text" class="produto-busca" placeholder="Buscar produto...">
+      <div class="autocomplete-list"></div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half">
+        <label>Qtd.</label>
+        <input type="number" min="1" value="1" class="produto-qtd">
+      </div>
+      <div class="form-group half">
+        <label>Valor venda</label>
+        <div class="valor verde produto-total-venda">R$ 0,00</div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half">
+        <label>Custo</label>
+        <div class="valor vermelho produto-total-custo">R$ 0,00</div>
+      </div>
+    </div>
+
+    <hr>
+  `;
+
+  container.appendChild(div);
+
+  configurarBuscaProduto(div);
+  configurarQuantidade(div);
+}
+
+// -----------------------------
+function limparProdutosDoPedido() {
+  document.getElementById("pedido-produtos-container").innerHTML = "";
+}
+
+// -----------------------------
+function configurarBuscaProduto(divProduto) {
+  const inputBusca = divProduto.querySelector(".produto-busca");
+  const lista = divProduto.querySelector(".autocomplete-list");
+  const qtdInput = divProduto.querySelector(".produto-qtd");
+  const totalVenda = divProduto.querySelector(".produto-total-venda");
+  const totalCusto = divProduto.querySelector(".produto-total-custo");
+
+  inputBusca.addEventListener("input", () => {
+    const texto = inputBusca.value.toLowerCase();
+    lista.innerHTML = "";
+
+    produtos
+      .filter(p => p.nome.toLowerCase().includes(texto))
+      .forEach(p => {
+        const item = document.createElement("div");
+        item.className = "autocomplete-item";
+        item.textContent = `${p.nome} — R$ ${p.preco}`;
+        item.addEventListener("click", () => {
+          inputBusca.value = p.nome;
+          inputBusca.dataset.preco = p.preco;
+          inputBusca.dataset.custo = p.custo;
+
+          atualizarValores();
+
+          lista.innerHTML = "";
+        });
+        lista.appendChild(item);
+      });
+  });
+
+  function atualizarValores() {
+    const qtd = Number(qtdInput.value);
+    const preco = Number(inputBusca.dataset.preco || 0);
+    const custo = Number(inputBusca.dataset.custo || 0);
+
+    totalVenda.textContent = "R$ " + (qtd * preco).toFixed(2);
+    totalCusto.textContent = "R$ " + (qtd * custo).toFixed(2);
+
+    recalcularTotais();
+  }
+
+  divProduto.qtdListener = () => atualizarValores();
+  qtdInput.addEventListener("input", atualizarValores);
+}
+
+// -----------------------------
+function configurarQuantidade(divProduto) {
+  const qtdInput = divProduto.querySelector(".produto-qtd");
+  qtdInput.addEventListener("input", () => {
+    const busca = divProduto.querySelector(".produto-busca");
+    if (busca.dataset.preco) {
+      busca.dispatchEvent(new Event("input"));
+    }
+  });
+}
+
+// -----------------------------
+function recalcularTotais() {
+  let totalVenda = 0;
+  let totalCusto = 0;
+
+  document.querySelectorAll(".produto-item").forEach(div => {
+    const venda = div.querySelector(".produto-total-venda").textContent.replace("R$ ", "");
+    const custo = div.querySelector(".produto-total-custo").textContent.replace("R$ ", "");
+
+    totalVenda += Number(venda);
+    totalCusto += Number(custo);
+  });
+
+  document.getElementById("total-venda").textContent = "R$ " + totalVenda.toFixed(2);
+  document.getElementById("total-custo").textContent = "R$ " + totalCusto.toFixed(2);
+
+  const lucroPerc = totalCusto > 0 ? ((totalVenda - totalCusto) / totalCusto) * 100 : 0;
+  document.getElementById("total-lucro").textContent = lucroPerc.toFixed(1) + "%";
+}
+
