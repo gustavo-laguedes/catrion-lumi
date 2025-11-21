@@ -772,6 +772,71 @@ input:focus {
   cursor: pointer;
 }
 
+/* Botão de edição ao lado do + */
+.fab-edit {
+  position: fixed;
+  right: 88px;          /* empurra um pouco pra esquerda do + */
+  bottom: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+}
+
+/* Card agrupado por cliente */
+.pedido-group-card {
+  cursor: pointer;
+}
+
+/* linha de cima: nome + total + botão - */
+.pedido-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* resuminho menor */
+.pedido-summary {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* detalhes escondidos/expandidos */
+.pedido-detalhes {
+  display: none;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  border-top: 1px dashed var(--border-soft);
+  padding-top: 4px;
+}
+
+.pedido-group-card.open .pedido-detalhes {
+  display: block;
+}
+
+/* botão - no modo edição */
+.btn-remove-group {
+  border: none;
+  background: #ffe5e5;
+  color: #c0392b;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
 /* 2 colunas no formulário do modal */
 .form-row-2 {
   display: grid;
