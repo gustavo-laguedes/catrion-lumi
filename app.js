@@ -177,18 +177,14 @@ if (agendaGrid) {
   renderAgenda();
 }
 
-// --- Novo Pedido: ações do botão + ---
-const btnAddItem = document.getElementById('btn-add-item');
-const fabAddItem = document.getElementById('fab-add-item');
-
-[btnAddItem, fabAddItem].forEach(btn => {
-  if (btn) {
-    btn.addEventListener('click', () => {
-      // depois aqui abre um modal / outra view de cadastro de item
-      alert('Aqui vai abrir o formulário para adicionar um item ao pedido.');
-    });
-  }
+// --- ações dos botões flutuantes "+" (novo pedido, clientes, etc.) ---
+document.querySelectorAll('.fab-add').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const ctx = btn.dataset.addContext || 'registro';
+    alert('Aqui vai abrir o formulário para adicionar ' + ctx + '.');
+  });
 });
+
 
 
 // --- MÊS NA TELA DE VENDAS ---
