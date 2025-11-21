@@ -860,6 +860,77 @@ textarea:focus {
   margin-bottom: 8px;
 }
 
+.modal-section {
+  margin-bottom: 12px;
+}
+
+.modal-section-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.modal-divider {
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  margin: 8px 0 10px;
+}
+
+.cliente-info-card {
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f4f6ff;
+  font-size: 0.85rem;
+}
+
+.autocomplete-list {
+  margin-top: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
+  background: #ffffff;
+  max-height: 160px;
+  overflow-y: auto;
+  display: none; /* depois o JS mostra quando tiver resultado */
+}
+
+.autocomplete-item {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.autocomplete-item:hover {
+  background: #f2f4ff;
+}
+
+.totais-pedido {
+  font-size: 0.9rem;
+}
+
+.totais-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.total-label {
+  color: var(--text-muted);
+}
+
+.total-valor {
+  font-weight: 600;
+}
+
+.total-venda {
+  color: #159b4c; /* verdinho */
+}
+
+.total-custo {
+  color: #d23636; /* vermelhinho */
+}
+
+
 /* select com visual parecido do input */
 select {
   width: 100%;
