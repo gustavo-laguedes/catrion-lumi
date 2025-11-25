@@ -113,6 +113,7 @@
       <div class="logo-empresa-top" id="logo-empresa-top">
         Logo da empresa (upload)
       </div>
+      <button class="header-gear" type="button" data-target-view="config">⚙</button>
     </header>
 
     <!-- HOME -->
@@ -132,9 +133,13 @@
               <span class="caption">Lançar vendas, compras e investimentos.</span>
             </button>
             <button class="tile-btn" data-target-view="agenda-registro">
-  <span class="title">Agenda</span>
-  <span class="caption">Registrar datas de entrega e produção.</span>
-</button>
+              <span class="title">Agenda</span>
+              <span class="caption">Registrar datas de entrega e produção.</span>
+            </button>
+            <button class="tile-btn" data-target-view="status-pedidos">
+              <span class="title">Status</span>
+              <span class="caption">Atualizar status de pedidos.</span>
+            </button>
           </div>
         </div>
 
@@ -173,7 +178,7 @@
               <span class="title">Relatórios</span>
               <span class="caption">Vendas, compras e clientes.</span>
             </button>
-            <button class="tile-btn" data-target-view="financas">
+            <button class="tile-btn" data-target-view="consulta-financas">
               <span class="title">Finanças</span>
               <span class="caption">Visão geral de entradas e saídas.</span>
             </button>
@@ -190,168 +195,268 @@
       </div>
     </section>
 
+    <!-- NOVO PEDIDO (FORM DIRETO) -->
     <section class="view" data-view="novo-pedido">
-  <div class="list-header">
-    <span class="pill-tag">Registrar</span>
-    <div class="list-title">Novo Pedido</div>
-    <div class="list-subtitle">
-      Selecione o cliente, adicione os itens do pedido e depois salve.
-    </div>
-  </div>
-
-  <div class="home-section">
-    <div class="section-title">Dados do pedido</div>
-    <p class="section-subtitle">
-      Mais pra frente aqui entra seleção de cliente, data de entrega, status etc.
-    </p>
-    <div class="item-meta">
-      Cliente: (a definir) <br>
-      Data de entrega: (a definir)
-    </div>
-  </div>
-
-  <div class="home-section">
-    <div class="section-title">Itens do pedido</div>
-    <p class="section-subtitle">
-      Liste os produtos que serão produzidos/vendidos neste pedido.
-    </p>
-
-    <!-- lista dos itens adicionados via JS -->
-    <div id="lista-itens-pedido">
-      <p class="item-meta">Nenhum item adicionado ainda. Toque em “+” para incluir.</p>
-    </div>
-
-     <!-- total do pedido -->
-    <div id="pedido-total" class="pedido-total">
-      Total do pedido: R$ 0,00
-    </div>
-  </div>
-
-<!-- botão flutuante para editar pedidos -->
-<button class="fab-edit" type="button" id="fab-edit-pedidos">✏️</button>
-
-<!-- botão flutuante para adicionar item -->
-<button class="fab-add" type="button" data-add-context="item do pedido" id="fab-add-item">+</button>
-
-
-     <!-- MODAL Adicionar Pedido -->
-  <div class="modal-backdrop" id="modal-item">
-    <div class="modal">
-      <div class="modal-header">
-        <span>Adicionar Pedido</span>
-        <button type="button" class="modal-close" id="modal-item-fechar">×</button>
+      <div class="list-header">
+        <span class="pill-tag">Registrar</span>
+        <div class="list-title">Novo Pedido</div>
+        <div class="list-subtitle">
+          Selecione o cliente, adicione os itens do pedido e salve. O pedido ficará disponível em “Pedidos”, “Finanças” e “Agenda”.
+        </div>
       </div>
 
-      <div class="modal-body">
+      <div class="home-section">
+        <div class="section-title">Dados do pedido</div>
+        <p class="section-subtitle">
+          O campo de entrega estimada será alimentado pela Agenda. Aqui você define cliente e itens.
+        </p>
 
-        <!-- BLOCO: CLIENTE -->
-        <div class="modal-section">
-          <div class="modal-section-title">Cliente</div>
+        <div class="form-group">
+          <label for="pedido-cliente-input">Cliente</label>
+          <input type="text" id="pedido-cliente-input" placeholder="Digite para buscar cliente cadastrado">
+          <div class="autocomplete-list" id="pedido-cliente-sugestoes"></div>
+        </div>
+
+        <div class="cliente-info-card" id="pedido-cliente-info" style="display:none;">
+          <div><strong>Telefone:</strong> <span id="pedido-cliente-tel"></span></div>
+          <div><strong>Endereço:</strong> <span id="pedido-cliente-end"></span></div>
+          <div><strong>Cidade:</strong> <span id="pedido-cliente-cid"></span></div>
+          <div><strong>Estado:</strong> <span id="pedido-cliente-est"></span></div>
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Itens do pedido</div>
+        <p class="section-subtitle">
+          Busque o produto, informe a quantidade e veja os valores de venda e custo.
+        </p>
+
+        <div id="pedido-itens-container">
+          <!-- linhas criadas via JS -->
+        </div>
+
+        <button class="btn-text" type="button" id="btn-pedido-add-item">+ Adicionar produto</button>
+
+        <div class="totais-pedido mt-8">
+          <div class="totais-row">
+            <span class="total-label">Total venda:</span>
+            <span class="total-valor total-venda" id="pedido-total-venda">R$ 0,00</span>
+          </div>
+          <div class="totais-row">
+            <span class="total-label">Total custo:</span>
+            <span class="total-valor total-custo" id="pedido-total-custo">R$ 0,00</span>
+          </div>
+          <div class="totais-row">
+            <span class="total-label">Lucro:</span>
+            <span class="total-valor" id="pedido-total-lucro">0%</span>
+          </div>
+        </div>
+
+        <div class="modal-footer mt-8">
+          <button class="btn-text" type="button" id="btn-pedido-cancelar">Cancelar</button>
+          <button class="btn btn-primary" type="button" id="btn-pedido-salvar">Salvar pedido</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGISTRAR FINANÇAS -->
+    <section class="view" data-view="financas">
+      <div class="list-header">
+        <span class="pill-tag">Finanças</span>
+        <div class="list-title">Lançamentos financeiros</div>
+        <div class="list-subtitle">
+          Registre saídas para investimento, compras de matéria-prima, vendas e entradas de investimento.
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="form-group">
+          <label for="lanc-tipo">Tipo de lançamento</label>
+          <select id="lanc-tipo">
+            <option value="">— selecione —</option>
+            <option value="saida-investimento">Saída para investimento</option>
+            <option value="compra-mp">Compra de matéria-prima</option>
+            <option value="venda">Venda</option>
+            <option value="entrada-investimento">Entrada de investimento</option>
+          </select>
+        </div>
+
+        <!-- SAÍDA PARA INVESTIMENTO -->
+        <div class="lanc-bloco" id="bloco-saida-investimento" style="display:none;">
+          <div class="form-group">
+            <label for="lanc-saida-valor">Valor</label>
+            <input type="number" id="lanc-saida-valor" min="0" step="0.01" placeholder="Ex: 500,00">
+          </div>
+          <div class="form-group">
+            <label for="lanc-saida-tipo">Tipo de investimento</label>
+            <input type="text" id="lanc-saida-tipo" placeholder="Ex: Equipamento, marketing...">
+          </div>
+          <div class="form-group">
+            <label for="lanc-saida-data">Data</label>
+            <input type="date" id="lanc-saida-data">
+          </div>
+        </div>
+
+        <!-- COMPRA DE MATÉRIA-PRIMA -->
+        <div class="lanc-bloco" id="bloco-compra-mp" style="display:none;">
+          <div class="form-group">
+            <label for="lanc-mp-material">Material</label>
+            <input type="text" id="lanc-mp-material" placeholder="Digite para buscar matéria-prima">
+            <div class="autocomplete-list" id="lanc-mp-material-sugestoes"></div>
+          </div>
+          <div class="form-group">
+            <label for="lanc-mp-qtd">Quantidade</label>
+            <input type="number" id="lanc-mp-qtd" min="0" step="0.01" placeholder="Ex: 10">
+          </div>
+          <div class="form-group">
+            <label for="lanc-mp-fornecedor">Fornecedor</label>
+            <input type="text" id="lanc-mp-fornecedor" placeholder="Digite para buscar fornecedor">
+            <div class="autocomplete-list" id="lanc-mp-fornecedor-sugestoes"></div>
+          </div>
+          <div class="form-group">
+            <label for="lanc-mp-valor">Valor total</label>
+            <input type="number" id="lanc-mp-valor" min="0" step="0.01" placeholder="Ex: 250,00">
+          </div>
+          <div class="form-group">
+            <label for="lanc-mp-data">Data</label>
+            <input type="date" id="lanc-mp-data">
+          </div>
+        </div>
+
+        <!-- VENDA -->
+        <div class="lanc-bloco" id="bloco-venda" style="display:none;">
+          <div class="form-group">
+            <label for="lanc-venda-pedido">Orçamento / Pedido</label>
+            <input type="text" id="lanc-venda-pedido" placeholder="Digite para buscar pedido">
+            <div class="autocomplete-list" id="lanc-venda-pedido-sugestoes"></div>
+          </div>
 
           <div class="form-group">
-            <label for="pedido-busca-cliente">Cliente</label>
-            <input type="text" id="pedido-busca-cliente" placeholder="Digite para buscar...">
-            <div class="autocomplete-list" id="lista-clientes"></div>
+            <label>Descrição dos materiais</label>
+            <div class="descricao-caixa" id="lanc-venda-descricao">Selecione um pedido.</div>
           </div>
 
-          <div class="cliente-info-card" id="cliente-info" style="display:none;">
-            <div><strong>Telefone:</strong> <span id="info-telefone"></span></div>
-            <div><strong>Endereço:</strong> <span id="info-endereco"></span></div>
-            <div><strong>Cidade:</strong> <span id="info-cidade"></span></div>
-            <div><strong>Estado:</strong> <span id="info-estado"></span></div>
-          </div>
-        </div>
-
-        <hr class="modal-divider">
-
-        <!-- BLOCO: PRODUTOS -->
-        <div class="modal-section">
-          <div class="modal-section-title">Produtos</div>
-          <p class="item-meta">
-            Digite para buscar um produto, informe a quantidade e veja os valores de venda e custo.
-          </p>
-
-          <div id="pedido-produtos-container">
-            <!-- linhas de produto serão criadas via JS -->
+          <div class="form-group">
+            <label>Valor do pedido</label>
+            <div class="descricao-caixa destaque" id="lanc-venda-valor">R$ 0,00</div>
           </div>
 
-          <button type="button" class="btn-text" id="btn-add-produto">
-            + Adicionar produto
-          </button>
-        </div>
+          <div class="form-group checkbox-inline">
+            <input type="checkbox" id="lanc-venda-parcial">
+            <span>Pago parcialmente</span>
+          </div>
 
-        <hr class="modal-divider">
-
-        <!-- BLOCO: TOTAIS -->
-        <div class="modal-section">
-          <div class="modal-section-title">Totais deste pedido</div>
-          <div class="totais-pedido">
-            <div class="totais-row">
-              <span class="total-label">Total venda:</span>
-              <span class="total-valor total-venda" id="total-venda-modal">R$ 0,00</span>
+          <div id="lanc-venda-parcial-bloco" style="display:none;">
+            <div class="form-group">
+              <label for="lanc-venda-valor-pago">Valor pago</label>
+              <input type="number" id="lanc-venda-valor-pago" min="0" step="0.01" placeholder="Ex: 100,00">
             </div>
-            <div class="totais-row">
-              <span class="total-label">Total custo:</span>
-              <span class="total-valor total-custo" id="total-custo-modal">R$ 0,00</span>
+            <div class="form-group">
+              <label for="lanc-venda-data">Data do pagamento</label>
+              <input type="date" id="lanc-venda-data">
             </div>
-            <div class="totais-row">
-              <span class="total-label">Lucro:</span>
-              <span class="total-valor" id="total-lucro-modal">0%</span>
+          </div>
+
+          <div id="lanc-venda-data-total-bloco">
+            <div class="form-group">
+              <label for="lanc-venda-data-total">Data do recebimento</label>
+              <input type="date" id="lanc-venda-data-total">
             </div>
           </div>
         </div>
 
+        <!-- ENTRADA DE INVESTIMENTO -->
+        <div class="lanc-bloco" id="bloco-entrada-investimento" style="display:none;">
+          <div class="form-group">
+            <label for="lanc-ent-valor">Valor</label>
+            <input type="number" id="lanc-ent-valor" min="0" step="0.01" placeholder="Ex: 300,00">
+          </div>
+          <div class="form-group">
+            <label for="lanc-ent-desc">Descrição</label>
+            <textarea id="lanc-ent-desc" rows="2" placeholder="Ex: Aporte de sócio, empréstimo..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="lanc-ent-data">Data</label>
+            <input type="date" id="lanc-ent-data">
+          </div>
+        </div>
+
+        <div class="modal-footer mt-8">
+          <button class="btn-text" type="button" id="lanc-cancelar">Cancelar</button>
+          <button class="btn btn-primary" type="button" id="lanc-salvar">Lançar</button>
+        </div>
       </div>
+    </section>
 
-      <div class="modal-footer">
-        <button type="button" class="btn-text" id="modal-item-cancelar">Cancelar</button>
-        <button type="button" class="btn btn-primary" id="modal-item-salvar">
-          Adicionar ao pedido
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-
-
-
-    <!-- FINANÇAS -->
-<section class="view" data-view="financas">
-  <div class="list-header">
-    <span class="pill-tag">Finanças</span>
-    <div class="list-title">Lançamentos financeiros</div>
-    <div class="list-subtitle">
-      Aqui depois teremos abas de Vendas, Compras, Investimentos e talvez Contas a pagar.
-    </div>
-  </div>
-
-  <!-- botão flutuante para adicionar lançamento financeiro -->
-  <button class="fab-add" type="button" data-add-context="lançamento financeiro">+</button>
-</section>
-
- <!-- REGISTRAR AGENDA (apenas botão +) -->
+    <!-- REGISTRAR AGENDA -->
     <section class="view" data-view="agenda-registro">
       <div class="list-header">
         <span class="pill-tag">Registrar</span>
         <div class="list-title">Novo compromisso</div>
         <div class="list-subtitle">
-          Aqui você vai lançar um evento na agenda (data, horário, descrição etc.).
-          <br>No momento deixamos só o botão “+” pronto.
+          Defina data ou período, tipo (produção, entrega ou outros) e vincule ao pedido quando necessário.
         </div>
       </div>
 
-      <button class="fab-add" type="button" data-add-context="compromisso na agenda">+</button>
+      <div class="home-section">
+        <div class="form-group">
+          <label for="agenda-data-unica">Data</label>
+          <input type="date" id="agenda-data-unica">
+        </div>
+
+        <div class="form-group checkbox-inline">
+          <input type="checkbox" id="agenda-periodo-check">
+          <span>Período</span>
+        </div>
+
+        <div id="agenda-periodo-bloco" style="display:none;">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="agenda-data-inicio">Data inicial</label>
+              <input type="date" id="agenda-data-inicio">
+            </div>
+            <div class="form-group">
+              <label for="agenda-data-fim">Data final</label>
+              <input type="date" id="agenda-data-fim">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="agenda-compromisso-tipo">Compromisso</label>
+          <select id="agenda-compromisso-tipo">
+            <option value="">— selecione —</option>
+            <option value="producao">Produção</option>
+            <option value="entrega">Entrega</option>
+            <option value="outros">Outros</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="agenda-pedido-bloco" style="display:none;">
+          <label for="agenda-pedido">Pedido</label>
+          <input type="text" id="agenda-pedido" placeholder="Digite para buscar pedido">
+          <div class="autocomplete-list" id="agenda-pedido-sugestoes"></div>
+        </div>
+
+        <div class="form-group" id="agenda-obs-bloco">
+          <label for="agenda-obs">Observação / descrição</label>
+          <textarea id="agenda-obs" rows="2" placeholder="Detalhe rapidamente o compromisso"></textarea>
+        </div>
+
+        <div class="modal-footer mt-8">
+          <button class="btn-text" type="button" id="agenda-reg-cancelar">Cancelar</button>
+          <button class="btn btn-primary" type="button" id="agenda-reg-salvar">Salvar compromisso</button>
+        </div>
+      </div>
     </section>
-    
+
     <!-- AGENDA (CALENDÁRIO) -->
     <section class="view" data-view="agenda">
       <div class="list-header">
         <span class="pill-tag">Agenda</span>
         <div class="list-title">Agenda</div>
         <div class="list-subtitle">
-          Visualização mensal das atividades de produção e entregas.
+          Visualização mensal das atividades de produção, entregas e outros compromissos.
         </div>
       </div>
       <div class="agenda-wrapper">
@@ -366,18 +471,30 @@
         <div class="agenda-grid" id="agenda-grid">
           <!-- dias via JS -->
         </div>
+
         <div class="agenda-legend">
           <div class="agenda-legend-item">
             <span class="legend-dot legend-today"></span><span>Hoje</span>
           </div>
           <div class="agenda-legend-item">
-            <span class="legend-dot legend-event"></span><span>Dia com agendamento</span>
+            <span class="legend-dot legend-producao"></span><span>Produção</span>
           </div>
+          <div class="agenda-legend-item">
+            <span class="legend-dot legend-entrega"></span><span>Entrega</span>
+          </div>
+          <div class="agenda-legend-item">
+            <span class="legend-dot legend-outros"></span><span>Outros</span>
+          </div>
+        </div>
+
+        <div class="agenda-dia-detalhes" id="agenda-dia-detalhes">
+          <div class="agenda-dia-header">Selecione um dia para ver os compromissos.</div>
+          <div class="agenda-dia-lista" id="agenda-dia-lista"></div>
         </div>
       </div>
     </section>
 
-    <!-- CADASTROS (ESQUELETOS) -->
+    <!-- CADASTROS: CLIENTES -->
     <section class="view" data-view="cad-clientes">
       <div class="list-header">
         <span class="pill-tag">Cadastros</span>
@@ -386,40 +503,269 @@
           Cadastro de clientes e consulta de histórico de pedidos.
         </div>
       </div>
-      <button class="fab-add" type="button" data-add-context="cliente">+</button>
-    </section>
 
-    <section class="view" data-view="cad-produtos">
-      <div class="list-header">
-        <span class="pill-tag">Cadastros</span>
-        <div class="list-title">Produtos</div>
-        <div class="list-subtitle">
-          Cadastro de produtos finais (composição, margem, tempo, energia etc).
+      <div class="home-section">
+        <div class="section-title">Novo cliente</div>
+        <div class="form-group">
+          <label for="cad-cliente-nome">Nome</label>
+          <input type="text" id="cad-cliente-nome" placeholder="Nome completo">
+        </div>
+        <div class="form-group">
+          <label for="cad-cliente-tel">Contato (telefone)</label>
+          <input type="text" id="cad-cliente-tel" placeholder="(DDD) 99999-9999">
+        </div>
+        <div class="form-group">
+          <label for="cad-cliente-end">Endereço (rua, número)</label>
+          <input type="text" id="cad-cliente-end" placeholder="Rua X, 123">
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="cad-cliente-cid">Cidade</label>
+            <input type="text" id="cad-cliente-cid" placeholder="Cidade">
+          </div>
+          <div class="form-group">
+            <label for="cad-cliente-est">Estado</label>
+            <input type="text" id="cad-cliente-est" placeholder="UF">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cad-cliente-foto">Foto (upload)</label>
+          <input type="file" id="cad-cliente-foto" accept="image/*">
+        </div>
+        <div class="modal-footer mt-4">
+          <button class="btn-text" type="button" id="cad-cliente-limpar">Limpar</button>
+          <button class="btn btn-primary" type="button" id="cad-cliente-salvar">Salvar cliente</button>
         </div>
       </div>
-      <button class="fab-add" type="button" data-add-context="produto">+</button>
+
+      <div class="home-section">
+        <div class="section-title">Clientes cadastrados</div>
+        <p class="section-subtitle">Clique em um cliente para ver detalhes e editar.</p>
+        <div id="lista-clientes-cad"></div>
+      </div>
     </section>
 
+    <!-- MODAL CLIENTE DETALHE -->
+    <div class="modal-backdrop" id="modal-cliente">
+      <div class="modal">
+        <div class="modal-header">
+          <span id="modal-cliente-titulo">Cliente</span>
+          <button type="button" class="modal-close" id="modal-cliente-fechar">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="modal-cliente-nome">Nome</label>
+            <input type="text" id="modal-cliente-nome">
+          </div>
+          <div class="form-group">
+            <label for="modal-cliente-tel">Contato</label>
+            <input type="text" id="modal-cliente-tel">
+          </div>
+          <div class="form-group">
+            <label for="modal-cliente-end">Endereço</label>
+            <input type="text" id="modal-cliente-end">
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="modal-cliente-cid">Cidade</label>
+              <input type="text" id="modal-cliente-cid">
+            </div>
+            <div class="form-group">
+              <label for="modal-cliente-est">Estado</label>
+              <input type="text" id="modal-cliente-est">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-text btn-text-danger" type="button" id="modal-cliente-excluir">Excluir</button>
+          <button class="btn btn-primary" type="button" id="modal-cliente-salvar">Salvar alterações</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CADASTROS: MATÉRIA-PRIMA -->
     <section class="view" data-view="cad-mp">
       <div class="list-header">
         <span class="pill-tag">Cadastros</span>
         <div class="list-title">Matéria-prima</div>
         <div class="list-subtitle">
-          Cadastro de insumos com unidade, custo, fornecedor, estoque inicial.
+          Cadastro de insumos com unidade. O histórico de compras vem dos lançamentos de finanças.
         </div>
       </div>
-      <button class="fab-add" type="button" data-add-context="matéria-prima">+</button>
+
+      <div class="home-section">
+        <div class="section-title">Nova matéria-prima</div>
+        <div class="form-group">
+          <label for="cad-mp-desc">Descrição</label>
+          <input type="text" id="cad-mp-desc" placeholder="Ex: Papel A4 90g">
+        </div>
+        <div class="form-group">
+          <label for="cad-mp-unid">Unidade</label>
+          <select id="cad-mp-unid">
+            <option value="">— selecione —</option>
+            <option value="peça">Peça</option>
+            <option value="pacote">Pacote</option>
+            <option value="quilo">Quilo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="cad-mp-foto">Foto (upload)</label>
+          <input type="file" id="cad-mp-foto" accept="image/*">
+        </div>
+        <div class="modal-footer mt-4">
+          <button class="btn-text" type="button" id="cad-mp-limpar">Limpar</button>
+          <button class="btn btn-primary" type="button" id="cad-mp-salvar">Salvar matéria-prima</button>
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Matérias-primas cadastradas</div>
+        <p class="section-subtitle">Clique para ver valor atual e histórico de compras.</p>
+        <div id="lista-mp-cad"></div>
+      </div>
     </section>
 
+    <!-- CADASTROS: PRODUTOS -->
+    <section class="view" data-view="cad-produtos">
+      <div class="list-header">
+        <span class="pill-tag">Cadastros</span>
+        <div class="list-title">Produtos</div>
+        <div class="list-subtitle">
+          Cadastro de produtos finais com custo calculado a partir das matérias-primas (simplificado por enquanto).
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Novo produto</div>
+        <div class="form-group">
+          <label for="cad-prod-foto">Foto (upload)</label>
+          <input type="file" id="cad-prod-foto" accept="image/*">
+        </div>
+        <div class="form-group">
+          <label for="cad-prod-desc">Descrição</label>
+          <input type="text" id="cad-prod-desc" placeholder="Ex: Caixa personalizada floral">
+        </div>
+        <div class="form-group">
+          <label for="cad-prod-unid">Unidade</label>
+          <select id="cad-prod-unid">
+            <option value="">— selecione —</option>
+            <option value="peça">Peça</option>
+            <option value="pacote">Pacote</option>
+            <option value="quilo">Quilo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Matérias-primas usadas (simplificado)</label>
+          <p class="section-subtitle">
+            Em uma próxima etapa podemos detalhar MP por produto. Por enquanto vamos cadastrar só custo total.
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label for="cad-prod-custo">Custo total (R$)</label>
+          <input type="number" id="cad-prod-custo" min="0" step="0.01" placeholder="Ex: 20,00">
+        </div>
+        <div class="form-group">
+          <label for="cad-prod-venda">Valor de venda (R$)</label>
+          <input type="number" id="cad-prod-venda" min="0" step="0.01" placeholder="Ex: 50,00">
+        </div>
+        <div class="form-group">
+          <label>Lucro (%)</label>
+          <div class="descricao-caixa" id="cad-prod-lucro">0%</div>
+        </div>
+
+        <div class="modal-footer mt-4">
+          <button class="btn-text" type="button" id="cad-prod-limpar">Limpar</button>
+          <button class="btn btn-primary" type="button" id="cad-prod-salvar">Salvar produto</button>
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Produtos cadastrados</div>
+        <p class="section-subtitle">Clique para ver detalhes e editar (simplificado).</p>
+        <div id="lista-prod-cad"></div>
+      </div>
+    </section>
+
+    <!-- CADASTROS: FORNECEDORES -->
     <section class="view" data-view="cad-fornecedores">
       <div class="list-header">
         <span class="pill-tag">Cadastros</span>
         <div class="list-title">Fornecedores</div>
         <div class="list-subtitle">
-          Cadastro de quem fornece matérias-primas.
+          Cadastro de fornecedores físicos e online.
         </div>
       </div>
-      <button class="fab-add" type="button" data-add-context="fornecedor">+</button>
+
+      <div class="home-section">
+        <div class="section-title">Novo fornecedor</div>
+        <div class="form-group">
+          <label for="cad-forn-nome">Nome</label>
+          <input type="text" id="cad-forn-nome" placeholder="Ex: Papelaria Central">
+        </div>
+        <div class="form-group">
+          <label for="cad-forn-local">Local</label>
+          <select id="cad-forn-local">
+            <option value="">— selecione —</option>
+            <option value="fisico">Físico</option>
+            <option value="internet">Internet</option>
+          </select>
+        </div>
+
+        <div id="cad-forn-fisico" style="display:none;">
+          <div class="form-group">
+            <label for="cad-forn-end">Endereço</label>
+            <input type="text" id="cad-forn-end" placeholder="Rua, número">
+          </div>
+          <div class="form-group">
+            <label for="cad-forn-contato">Contato</label>
+            <input type="text" id="cad-forn-contato" placeholder="Telefone / WhatsApp">
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="cad-forn-cid">Cidade</label>
+              <input type="text" id="cad-forn-cid" placeholder="Cidade">
+            </div>
+            <div class="form-group">
+              <label for="cad-forn-est">Estado</label>
+              <input type="text" id="cad-forn-est" placeholder="UF">
+            </div>
+          </div>
+        </div>
+
+        <div id="cad-forn-internet" style="display:none;">
+          <div class="form-group">
+            <label for="cad-forn-plataforma">Plataforma</label>
+            <input type="text" id="cad-forn-plataforma" placeholder="Ex: Shopee, Mercado Livre">
+          </div>
+          <div class="form-group">
+            <label for="cad-forn-contato-int">Contato</label>
+            <input type="text" id="cad-forn-contato-int" placeholder="Usuário, loja, e-mail...">
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="cad-forn-cid-int">Cidade</label>
+              <input type="text" id="cad-forn-cid-int" placeholder="Opcional">
+            </div>
+            <div class="form-group">
+              <label for="cad-forn-est-int">Estado</label>
+              <input type="text" id="cad-forn-est-int" placeholder="Opcional">
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer mt-4">
+          <button class="btn-text" type="button" id="cad-forn-limpar">Limpar</button>
+          <button class="btn btn-primary" type="button" id="cad-forn-salvar">Salvar fornecedor</button>
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Fornecedores cadastrados</div>
+        <p class="section-subtitle">Lista rápida dos fornecedores (edição simplificada por enquanto).</p>
+        <div id="lista-forn-cad"></div>
+      </div>
     </section>
 
     <!-- CONSULTA ESTOQUE -->
@@ -428,8 +774,98 @@
         <span class="pill-tag">Consultas</span>
         <div class="list-title">Estoque</div>
         <div class="list-subtitle">
-          Visão geral de matérias-primas e produtos prontos. Depois colocamos filtros e busca.
+          Visão geral de matérias-primas e produtos prontos. Estoque ainda simplificado.
         </div>
+      </div>
+
+      <div class="home-section">
+        <div class="estoque-toggle">
+          <button type="button" class="estoque-toggle-btn active" data-estoque-tipo="mp">Matéria-prima</button>
+          <button type="button" class="estoque-toggle-btn" data-estoque-tipo="produtos">Produtos</button>
+        </div>
+
+        <div class="form-group">
+          <label for="estoque-busca">Buscar</label>
+          <input type="text" id="estoque-busca" placeholder="Digite para filtrar pelo nome">
+        </div>
+
+        <div id="estoque-lista"></div>
+      </div>
+    </section>
+
+    <!-- CONSULTA FINANÇAS -->
+    <section class="view" data-view="consulta-financas">
+      <div class="list-header">
+        <span class="pill-tag">Consultas</span>
+        <div class="list-title">Finanças</div>
+        <div class="list-subtitle">
+          Balanço de entradas e saídas em um período, com detalhamento.
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Período</div>
+        <div class="form-group">
+          <label for="cons-fin-tipo-periodo">Tipo de período</label>
+          <select id="cons-fin-tipo-periodo">
+            <option value="mensal">Mensal</option>
+            <option value="anual">Anual</option>
+            <option value="diario">Diário</option>
+          </select>
+        </div>
+
+        <div id="cons-fin-mensal">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="cons-fin-mes">Mês</label>
+              <select id="cons-fin-mes"></select>
+            </div>
+            <div class="form-group">
+              <label for="cons-fin-ano">Ano</label>
+              <input type="number" id="cons-fin-ano">
+            </div>
+          </div>
+        </div>
+
+        <div id="cons-fin-anual" style="display:none;">
+          <div class="form-group">
+            <label for="cons-fin-ano-anual">Ano</label>
+            <input type="number" id="cons-fin-ano-anual">
+          </div>
+        </div>
+
+        <div id="cons-fin-diario" style="display:none;">
+          <div class="form-group">
+            <label for="cons-fin-data-unica">Data</label>
+            <input type="date" id="cons-fin-data-unica">
+          </div>
+        </div>
+
+        <button class="btn btn-primary mt-4" type="button" id="cons-fin-aplicar">Aplicar período</button>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Resumo do período</div>
+        <div class="totais-pedido">
+          <div class="totais-row">
+            <span class="total-label">Entradas:</span>
+            <span class="total-valor total-venda" id="cons-fin-entradas">R$ 0,00</span>
+          </div>
+          <div class="totais-row">
+            <span class="total-label">Saídas:</span>
+            <span class="total-valor total-custo" id="cons-fin-saidas">R$ 0,00</span>
+          </div>
+          <div class="totais-row">
+            <span class="total-label">Balanço:</span>
+            <span class="total-valor" id="cons-fin-balanco">R$ 0,00</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Detalhamento do período</div>
+        <p class="section-subtitle">Toque em um lançamento para editar (simplificado).</p>
+        <div id="cons-fin-lista"></div>
       </div>
     </section>
 
@@ -439,8 +875,54 @@
         <span class="pill-tag">Relatórios</span>
         <div class="list-title">Relatórios</div>
         <div class="list-subtitle">
-          Aqui entra PDF/export ou visualização de relatórios de vendas, compras e clientes.
+          Geração de relatórios em PDF (estrutura inicial para futuros exports).
         </div>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Tipo de relatório</div>
+        <div class="form-group">
+          <label for="rel-tipo">Relatório</label>
+          <select id="rel-tipo">
+            <option value="fiscal">Fiscal (entradas x saídas)</option>
+            <option value="estoque">Estoque</option>
+            <option value="clientes">Clientes</option>
+          </select>
+        </div>
+
+        <div id="rel-fiscal-opcoes">
+          <div class="form-group">
+            <label for="rel-fiscal-ano">Ano</label>
+            <input type="number" id="rel-fiscal-ano">
+          </div>
+          <div class="form-group">
+            <label for="rel-fiscal-mes">Mês (0 para ano todo)</label>
+            <input type="number" id="rel-fiscal-mes" min="0" max="12">
+          </div>
+        </div>
+
+        <div id="rel-estoque-opcoes" style="display:none;">
+          <div class="form-group">
+            <label for="rel-estoque-tipo">Tipo de estoque</label>
+            <select id="rel-estoque-tipo">
+              <option value="mp">Matéria-prima</option>
+              <option value="produtos">Produtos</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="rel-clientes-opcoes" style="display:none;">
+          <p class="section-subtitle">
+            Relatório com lista de clientes e quanto cada um já gastou. (Baseado em pedidos marcados como pagos.)
+          </p>
+        </div>
+
+        <button class="btn btn-primary mt-4" type="button" id="rel-gerar">Gerar relatório (visual)</button>
+      </div>
+
+      <div class="home-section">
+        <div class="section-title">Prévia</div>
+        <div id="rel-previa"></div>
       </div>
     </section>
 
@@ -492,31 +974,83 @@
       </div>
     </section>
 
+    <!-- REGISTRAR STATUS DE PEDIDOS -->
+    <section class="view" data-view="status-pedidos">
+      <div class="list-header">
+        <span class="pill-tag">Registrar</span>
+        <div class="list-title">Status dos pedidos</div>
+        <div class="list-subtitle">
+          Atualize o status geral do pedido (aguardando, em andamento, finalizado, entregue ou cancelado).
+        </div>
+      </div>
+
+      <div class="home-section">
+        <div class="form-group">
+          <label for="status-pedido-busca">Pedido</label>
+          <input type="text" id="status-pedido-busca" placeholder="Digite para buscar pedido">
+          <div class="autocomplete-list" id="status-pedido-sugestoes"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="status-pedido-select">Status</label>
+          <select id="status-pedido-select">
+            <option value="">— selecione —</option>
+            <option value="Aguardando">Aguardando</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Finalizado">Finalizado</option>
+            <option value="Entregue">Entregue</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+        </div>
+
+        <div class="modal-footer mt-8">
+          <button class="btn-text" type="button" id="status-pedido-cancelar">Cancelar</button>
+          <button class="btn btn-primary" type="button" id="status-pedido-salvar">Salvar status</button>
+        </div>
+      </div>
+    </section>
+
     <!-- PEDIDOS -->
     <section class="view" data-view="pedidos">
       <div class="list-header">
         <span class="pill-tag">Pedidos</span>
-        <div class="list-title">Pedidos aguardando</div>
+        <div class="list-title">Pedidos</div>
         <div class="list-subtitle">
-          Quando lançar a venda lá nas finanças, o pedido some daqui (futuro).
+          Acompanhe os pedidos, status e pagamento. Filtre por status quando necessário.
         </div>
       </div>
-      <div class="list">
-        <div class="item-card">
-          <div class="item-row">
-            <span class="item-title">Pedido #123 - Caneca “Flores”</span>
-            <span class="badge badge-pendente">Aguardando</span>
-          </div>
-          <div class="item-meta">
-            Cliente: Ana Paula • Quantidade: 2 • Entrega: 05/12/2025
-          </div>
-          <div class="item-actions">
-            <button class="btn-text" type="button">Ver detalhes</button>
-            <button class="btn-text btn-text-danger" type="button">Cancelar pedido</button>
-          </div>
+
+      <div class="home-section">
+        <div class="form-group">
+          <label for="filtro-pedidos-status">Filtrar por status</label>
+          <select id="filtro-pedidos-status">
+            <option value="todos">Todos</option>
+            <option value="Aguardando">Aguardando</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Aguardando pagamento">Aguardando pagamento</option>
+            <option value="Pago parcialmente">Pago parcialmente</option>
+            <option value="Pago">Pago</option>
+            <option value="Finalizado">Finalizado</option>
+            <option value="Entregue">Entregue</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
         </div>
+        <div id="lista-pedidos"></div>
       </div>
     </section>
+
+    <!-- MODAL DETALHE DO PEDIDO -->
+    <div class="modal-backdrop" id="modal-pedido-detalhe">
+      <div class="modal">
+        <div class="modal-header">
+          <span id="modal-pedido-titulo">Pedido</span>
+          <button type="button" class="modal-close" id="modal-pedido-fechar">×</button>
+        </div>
+        <div class="modal-body" id="modal-pedido-corpo">
+          <!-- preenchido via JS -->
+        </div>
+      </div>
+    </div>
 
     <!-- VENDAS (Resumo) -->
     <section class="view" data-view="vendas">
@@ -524,15 +1058,15 @@
         <span class="pill-tag">Vendas</span>
         <div class="list-title">Resumo de vendas</div>
         <div class="list-subtitle">
-          Visão rápida de pedidos, receitas, despesas e lucro no período.
+          Visão rápida de pedidos, receitas, custos e lucro no período.
         </div>
       </div>
 
       <div class="vendas-filters">
         <div class="vendas-filter-row">
-          <button class="vendas-arrow" type="button">&lt;</button>
+          <button class="vendas-arrow" type="button" id="vendas-periodo-prev">&lt;</button>
           <div class="vendas-filter-chip" id="vendas-periodo-chip">mensal</div>
-          <button class="vendas-arrow" type="button">&gt;</button>
+          <button class="vendas-arrow" type="button" id="vendas-periodo-next">&gt;</button>
         </div>
         <div class="vendas-filter-row">
           <button class="vendas-arrow" type="button" id="vendas-mes-prev">&lt;</button>
@@ -544,23 +1078,15 @@
       <div class="vendas-pedidos-card">
         <div class="vendas-pedidos-header">
           <span>Pedidos</span>
-          <span>Quantidade&nbsp;&nbsp;&nbsp;&nbsp;Valores</span>
+          <span>Qtd&nbsp;&nbsp;&nbsp;&nbsp;Valor</span>
         </div>
 
         <div class="vendas-status-row">
           <div class="vendas-status-left">
-            <span class="vendas-dot dot-pendente"></span>
-            <span>Pendente</span>
+            <span class="vendas-dot dot-aguardando"></span>
+            <span>Aguardando</span>
           </div>
-          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
-        </div>
-
-        <div class="vendas-status-row">
-          <div class="vendas-status-left">
-            <span class="vendas-dot dot-aprovacao"></span>
-            <span>Aguardando aprovação</span>
-          </div>
-          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+          <span id="vendas-aguardando">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
         </div>
 
         <div class="vendas-status-row">
@@ -568,7 +1094,7 @@
             <span class="vendas-dot dot-andamento"></span>
             <span>Em andamento</span>
           </div>
-          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+          <span id="vendas-andamento">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
         </div>
 
         <div class="vendas-status-row">
@@ -576,7 +1102,23 @@
             <span class="vendas-dot dot-pagamento"></span>
             <span>Aguardando pagamento</span>
           </div>
-          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+          <span id="vendas-aguardando-pag">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-parcial"></span>
+            <span>Pago parcialmente</span>
+          </div>
+          <span id="vendas-parcial">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-pago"></span>
+            <span>Pago</span>
+          </div>
+          <span id="vendas-pago">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
         </div>
 
         <div class="vendas-status-row">
@@ -584,7 +1126,15 @@
             <span class="vendas-dot dot-finalizado"></span>
             <span>Finalizado</span>
           </div>
-          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+          <span id="vendas-finalizado">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
+        </div>
+
+        <div class="vendas-status-row">
+          <div class="vendas-status-left">
+            <span class="vendas-dot dot-entregue"></span>
+            <span>Entregue</span>
+          </div>
+          <span id="vendas-entregue">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
         </div>
 
         <div class="vendas-status-row">
@@ -592,31 +1142,27 @@
             <span class="vendas-dot dot-cancelado"></span>
             <span>Cancelado</span>
           </div>
-          <span>0&nbsp;&nbsp;&nbsp;&nbsp;0</span>
+          <span id="vendas-cancelado">0&nbsp;&nbsp;&nbsp;&nbsp;R$ 0,00</span>
         </div>
       </div>
 
       <div class="vendas-summary-grid">
         <div class="vendas-summary-card">
-          <div class="vendas-summary-value">0,00</div>
+          <div class="vendas-summary-value" id="vendas-receitas">R$ 0,00</div>
           <div class="vendas-summary-label">Receitas</div>
         </div>
         <div class="vendas-summary-card">
-          <div class="vendas-summary-value">0,00</div>
-          <div class="vendas-summary-label">Despesas</div>
-        </div>
-        <div class="vendas-summary-card">
-          <div class="vendas-summary-value">0,00</div>
+          <div class="vendas-summary-value" id="vendas-custos">R$ 0,00</div>
           <div class="vendas-summary-label">Custo Produtos</div>
         </div>
         <div class="vendas-summary-card">
-          <div class="vendas-summary-value">0,00</div>
+          <div class="vendas-summary-value" id="vendas-lucro">R$ 0,00</div>
           <div class="vendas-summary-label">Lucro Líq.</div>
         </div>
       </div>
     </section>
 
-    <!-- MODAL GENÉRICO PARA OUTROS "+" -->
+    <!-- MODAL GENÉRICO (ainda útil p/ coisas futuras) -->
     <div class="modal-backdrop" id="modal-generic">
       <div class="modal">
         <div class="modal-header">
