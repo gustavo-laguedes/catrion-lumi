@@ -43,7 +43,8 @@ body {
   position: relative;
 }
 
-/* views */
+/* ========== VIEWS ========== */
+
 .view {
   display: none;
   flex: 1;
@@ -56,7 +57,8 @@ body {
   flex-direction: column;
 }
 
-/* auth */
+/* ========== AUTH (LOGIN / REGISTER) ========== */
+
 .auth-wrapper {
   flex: 1;
   display: flex;
@@ -116,7 +118,9 @@ label {
 
 input[type="email"],
 input[type="password"],
-input[type="text"] {
+input[type="text"],
+input[type="number"],
+input[type="file"] {
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--border-soft);
@@ -132,6 +136,7 @@ input:focus {
 }
 
 /* senha com olho */
+
 .input-with-toggle {
   position: relative;
   display: flex;
@@ -216,7 +221,7 @@ input:focus {
   font-size: 0.9rem;
 }
 
-/* header */
+/* ========== HEADER TOPO ========= */
 
 .app-header {
   display: none;
@@ -268,7 +273,7 @@ input:focus {
   text-overflow: ellipsis;
 }
 
-/* home */
+/* ========== HOME ========== */
 
 .home-scroll {
   flex: 1;
@@ -356,7 +361,7 @@ input:focus {
   color: var(--text-muted);
 }
 
-/* cards/listas */
+/* ========== LIST / CARDS ========= */
 
 .list {
   flex: 1;
@@ -465,7 +470,7 @@ input:focus {
   height: 14px;
 }
 
-/* bottom nav */
+/* ========== BOTTOM NAV ========= */
 
 .bottom-nav {
   position: fixed;
@@ -518,7 +523,7 @@ input:focus {
   font-weight: 600;
 }
 
-/* vendas resumo */
+/* ========== VENDAS (RESUMO) ========= */
 
 .vendas-filters {
   display: flex;
@@ -629,7 +634,7 @@ input:focus {
   color: var(--text-muted);
 }
 
-/* agenda calendário */
+/* ========== AGENDA CALENDÁRIO ========= */
 
 .agenda-wrapper {
   background: var(--calendar-bg);
@@ -739,134 +744,13 @@ input:focus {
 .legend-today { background: var(--calendar-today); }
 .legend-event { background: var(--calendar-event); }
 
-@media (min-width: 768px) {
-  .app {
-    margin: 16px 0;
-    border-radius: 24px;
-    box-shadow: 0 18px 40px rgba(0,0,0,0.15);
-    overflow: hidden;
-  }
-}
+/* ========== MODAL GENÉRICO / MODAIS ========= */
 
-/* view de novo pedido precisa ser relativa para o botão flutuante */
-.view[data-view="novo-pedido"] {
-  position: relative;
-}
-
-/* botão flutuante de adicionar */
-.fab-add {
-  position: absolute;
-  right: 20px;
-  bottom: 90px; /* fica acima da barra de navegação */
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: none;
-  background: #3f51b5;
-  color: #ffffff;
-  font-size: 1.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
-  cursor: pointer;
-}
-
-/* Botão de edição ao lado do + */
-.fab-edit {
-  position: fixed;
-  right: 88px;          /* empurra um pouco pra esquerda do + */
-  bottom: 24px;
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  border: none;
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #555;
-}
-
-/* Card agrupado por cliente */
-.pedido-group-card {
-  cursor: pointer;
-}
-
-/* linha de cima: nome + total + botão - */
-.pedido-group-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* resuminho menor */
-.pedido-summary {
-  margin-top: 4px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
-/* detalhes escondidos/expandidos */
-.pedido-detalhes {
-  display: none;
-  margin-top: 6px;
-  font-size: 0.85rem;
-  border-top: 1px dashed var(--border-soft);
-  padding-top: 4px;
-}
-
-.pedido-group-card.open .pedido-detalhes {
-  display: block;
-}
-
-/* botão - no modo edição */
-.btn-remove-group {
-  border: none;
-  background: #ffe5e5;
-  color: #c0392b;
-  border-radius: 999px;
-  width: 28px;
-  height: 28px;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-
-/* 2 colunas no formulário do modal */
-.form-row-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-/* textarea com mesmo estilo dos inputs */
-textarea {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--border-soft);
-  padding: 10px 12px;
-  font-size: 0.95rem;
-  outline: none;
-  background: #fdfdff;
-  resize: vertical;
-}
-
-textarea:focus {
-  border-color: var(--primary);
-  background: #ffffff;
-}
-
-/* MODAL genérico */
 .modal-backdrop {
   position: absolute;
   inset: 0;
   background: rgba(0,0,0,0.25);
-  display: none;         /* escondido por padrão */
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 16px;
@@ -917,14 +801,6 @@ textarea:focus {
   margin-top: 4px;
 }
 
-/* linha do modal com produto + quantidade */
-.item-modal-row {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
 .modal-section {
   margin-bottom: 12px;
 }
@@ -941,6 +817,8 @@ textarea:focus {
   margin: 8px 0 10px;
 }
 
+/* ========== COMPONENTES DO MODAL DE PEDIDO ========= */
+
 .cliente-info-card {
   margin-top: 6px;
   padding: 8px 10px;
@@ -956,7 +834,7 @@ textarea:focus {
   background: #ffffff;
   max-height: 160px;
   overflow-y: auto;
-  display: none; /* depois o JS mostra quando tiver resultado */
+  display: none;
 }
 
 .autocomplete-item {
@@ -967,6 +845,32 @@ textarea:focus {
 
 .autocomplete-item:hover {
   background: #f2f4ff;
+}
+
+.produto-item {
+  margin-bottom: 10px;
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+}
+
+.form-row .half {
+  flex: 1;
+}
+
+.valor {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.valor.verde {
+  color: var(--success);
+}
+
+.valor.vermelho {
+  color: var(--danger);
 }
 
 .totais-pedido {
@@ -988,15 +892,31 @@ textarea:focus {
 }
 
 .total-venda {
-  color: #159b4c; /* verdinho */
+  color: #159b4c;
 }
 
 .total-custo {
-  color: #d23636; /* vermelhinho */
+  color: #d23636;
 }
 
+/* ========== TEXTAREA / SELECT ========= */
 
-/* select com visual parecido do input */
+textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  outline: none;
+  background: #fdfdff;
+  resize: vertical;
+}
+
+textarea:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
 select {
   width: 100%;
   border-radius: 12px;
@@ -1012,7 +932,100 @@ select:focus {
   background: #ffffff;
 }
 
+/* ========== FAB (BOTÕES FLUTUANTES) ========= */
+
+.view[data-view="novo-pedido"] {
+  position: relative;
+}
+
+.fab-add {
+  position: absolute;
+  right: 20px;
+  bottom: 90px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: #3f51b5;
+  color: #ffffff;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+
+.fab-edit {
+  position: fixed;
+  right: 88px;
+  bottom: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+}
+
+/* ========== AGRUPAMENTO DE PEDIDOS POR CLIENTE ========= */
+
+.pedido-group-card {
+  cursor: pointer;
+}
+
+.pedido-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pedido-summary {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.pedido-detalhes {
+  display: none;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  border-top: 1px dashed var(--border-soft);
+  padding-top: 4px;
+}
+
+.pedido-group-card.open .pedido-detalhes {
+  display: block;
+}
+
+.btn-remove-group {
+  border: none;
+  background: #ffe5e5;
+  color: #c0392b;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 2 colunas (auxiliar) */
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 /* total do pedido */
+
 .pedido-total {
   margin-top: 10px;
   padding-top: 8px;
@@ -1022,3 +1035,13 @@ select:focus {
   color: var(--text-main);
 }
 
+/* ========== RESPONSIVO DESKTOP ========= */
+
+@media (min-width: 768px) {
+  .app {
+    margin: 16px 0;
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+    overflow: hidden;
+  }
+}
