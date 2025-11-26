@@ -48,6 +48,17 @@ function showView(name) {
       btn.classList.remove('active');
     }
   });
+
+  // Ao entrar nas telas de cadastro, sempre começar pela lista
+  if (name === 'cad-clientes') {
+    mostrarClientesLista();
+  } else if (name === 'cad-produtos') {
+    mostrarProdutosListaView();
+  } else if (name === 'cad-mp') {
+    mostrarMpListaView();
+  } else if (name === 'cad-fornecedores') {
+    mostrarFornecedoresListaView();
+  }
 }
 
 // =========================
@@ -225,7 +236,7 @@ let calMonth = today.getMonth();
 let calYear = today.getFullYear();
 
 function getDateKey(y, m, d) {
-  return `${y}-${String(m + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
 
 function eventosPorDia() {
@@ -397,6 +408,37 @@ const btnCliLimpar = document.getElementById('cad-cliente-limpar');
 const btnCliSalvar = document.getElementById('cad-cliente-salvar');
 const listaClientesCad = document.getElementById('lista-clientes-cad');
 
+// Seções e FAB de Clientes
+const clientesListSection = document.getElementById('clientes-list-section');
+const clientesFormSection = document.getElementById('clientes-form-section');
+const fabAddCliente = document.getElementById('fab-add-cliente');
+const btnClientesVoltar = document.getElementById('btn-clientes-voltar-lista');
+
+function mostrarClientesLista() {
+  if (clientesListSection) clientesListSection.style.display = 'block';
+  if (clientesFormSection) clientesFormSection.style.display = 'none';
+  if (fabAddCliente) fabAddCliente.style.display = 'flex';
+}
+
+function mostrarClientesForm() {
+  if (clientesListSection) clientesListSection.style.display = 'none';
+  if (clientesFormSection) clientesFormSection.style.display = 'block';
+  if (fabAddCliente) fabAddCliente.style.display = 'none';
+}
+
+if (fabAddCliente) {
+  fabAddCliente.addEventListener('click', () => {
+    limparFormCliente();
+    mostrarClientesForm();
+  });
+}
+
+if (btnClientesVoltar) {
+  btnClientesVoltar.addEventListener('click', () => {
+    mostrarClientesLista();
+  });
+}
+
 function limparFormCliente() {
   if (cadCliNome) cadCliNome.value = '';
   if (cadCliTel) cadCliTel.value = '';
@@ -422,6 +464,7 @@ async function salvarCliente() {
       createdAt: serverTimestamp()
     });
     limparFormCliente();
+    mostrarClientesLista();
   } catch (err) {
     console.error('Erro ao salvar cliente:', err);
     alert('Não foi possível salvar o cliente.');
@@ -436,7 +479,7 @@ function renderListaClientes() {
     return;
   }
 
-  const ordenados = [...clientes].sort((a,b) => {
+  const ordenados = [...clientes].sort((a, b) => {
     const na = (a.nome || '').toLowerCase();
     const nb = (b.nome || '').toLowerCase();
     if (na < nb) return -1;
@@ -473,6 +516,37 @@ const btnMpLimpar = document.getElementById('cad-mp-limpar');
 const btnMpSalvar = document.getElementById('cad-mp-salvar');
 const listaMpCad = document.getElementById('lista-mp-cad');
 
+// Seções e FAB de Matéria-prima
+const mpListSection = document.getElementById('mp-list-section');
+const mpFormSection = document.getElementById('mp-form-section');
+const fabAddMp = document.getElementById('fab-add-mp');
+const btnMpVoltar = document.getElementById('btn-mp-voltar-lista');
+
+function mostrarMpListaView() {
+  if (mpListSection) mpListSection.style.display = 'block';
+  if (mpFormSection) mpFormSection.style.display = 'none';
+  if (fabAddMp) fabAddMp.style.display = 'flex';
+}
+
+function mostrarMpFormView() {
+  if (mpListSection) mpListSection.style.display = 'none';
+  if (mpFormSection) mpFormSection.style.display = 'block';
+  if (fabAddMp) fabAddMp.style.display = 'none';
+  limparFormMp();
+}
+
+if (fabAddMp) {
+  fabAddMp.addEventListener('click', () => {
+    mostrarMpFormView();
+  });
+}
+
+if (btnMpVoltar) {
+  btnMpVoltar.addEventListener('click', () => {
+    mostrarMpListaView();
+  });
+}
+
 function limparFormMp() {
   if (cadMpDesc) cadMpDesc.value = '';
   if (cadMpUnid) cadMpUnid.value = '';
@@ -496,6 +570,7 @@ async function salvarMp() {
       createdAt: serverTimestamp()
     });
     limparFormMp();
+    mostrarMpListaView();
   } catch (err) {
     console.error('Erro ao salvar matéria-prima:', err);
     alert('Não foi possível salvar a matéria-prima.');
@@ -510,7 +585,7 @@ function renderListaMp() {
     return;
   }
 
-  const ordenados = [...materiasPrima].sort((a,b) => {
+  const ordenados = [...materiasPrima].sort((a, b) => {
     const da = (a.descricao || '').toLowerCase();
     const db = (b.descricao || '').toLowerCase();
     if (da < db) return -1;
@@ -574,6 +649,37 @@ const btnFornLimpar = document.getElementById('cad-forn-limpar');
 const btnFornSalvar = document.getElementById('cad-forn-salvar');
 const listaFornCad = document.getElementById('lista-forn-cad');
 
+// Seções e FAB de Fornecedores
+const fornListSection = document.getElementById('forn-list-section');
+const fornFormSection = document.getElementById('forn-form-section');
+const fabAddForn = document.getElementById('fab-add-forn');
+const btnFornVoltar = document.getElementById('btn-forn-voltar-lista');
+
+function mostrarFornecedoresListaView() {
+  if (fornListSection) fornListSection.style.display = 'block';
+  if (fornFormSection) fornFormSection.style.display = 'none';
+  if (fabAddForn) fabAddForn.style.display = 'flex';
+}
+
+function mostrarFornecedoresFormView() {
+  if (fornListSection) fornListSection.style.display = 'none';
+  if (fornFormSection) fornFormSection.style.display = 'block';
+  if (fabAddForn) fabAddForn.style.display = 'none';
+  limparFormForn();
+}
+
+if (fabAddForn) {
+  fabAddForn.addEventListener('click', () => {
+    mostrarFornecedoresFormView();
+  });
+}
+
+if (btnFornVoltar) {
+  btnFornVoltar.addEventListener('click', () => {
+    mostrarFornecedoresListaView();
+  });
+}
+
 function limparFormForn() {
   if (cadFornNome) cadFornNome.value = '';
   if (cadFornContato) cadFornContato.value = '';
@@ -595,6 +701,7 @@ async function salvarFornecedor() {
       createdAt: serverTimestamp()
     });
     limparFormForn();
+    mostrarFornecedoresListaView();
   } catch (err) {
     console.error('Erro ao salvar fornecedor:', err);
     alert('Não foi possível salvar o fornecedor.');
@@ -609,7 +716,7 @@ function renderListaFornecedores() {
     return;
   }
 
-  const ordenados = [...fornecedores].sort((a,b) => {
+  const ordenados = [...fornecedores].sort((a, b) => {
     const na = (a.nome || '').toLowerCase();
     const nb = (b.nome || '').toLowerCase();
     if (na < nb) return -1;
@@ -648,6 +755,37 @@ const cadProdLimpar = document.getElementById('cad-prod-limpar');
 const cadProdSalvar = document.getElementById('cad-prod-salvar');
 const cadProdMpContainer = document.getElementById('cad-prod-mp-container');
 const listaProdutosCad = document.getElementById('lista-produtos-cad');
+
+// Seções e FAB de Produtos
+const produtosListSection = document.getElementById('produtos-list-section');
+const produtosFormSection = document.getElementById('produtos-form-section');
+const fabAddProduto = document.getElementById('fab-add-produto');
+const btnProdutosVoltar = document.getElementById('btn-produtos-voltar-lista');
+
+function mostrarProdutosListaView() {
+  if (produtosListSection) produtosListSection.style.display = 'block';
+  if (produtosFormSection) produtosFormSection.style.display = 'none';
+  if (fabAddProduto) fabAddProduto.style.display = 'flex';
+}
+
+function mostrarProdutosFormView() {
+  if (produtosListSection) produtosListSection.style.display = 'none';
+  if (produtosFormSection) produtosFormSection.style.display = 'block';
+  if (fabAddProduto) fabAddProduto.style.display = 'none';
+  resetProdutoForm();
+}
+
+if (fabAddProduto) {
+  fabAddProduto.addEventListener('click', () => {
+    mostrarProdutosFormView();
+  });
+}
+
+if (btnProdutosVoltar) {
+  btnProdutosVoltar.addEventListener('click', () => {
+    mostrarProdutosListaView();
+  });
+}
 
 let linhasMpProduto = []; // { selectEl, qtdEl, custoLinhaEl }
 
@@ -697,6 +835,10 @@ function atualizarOptionsMpProdutoTodasLinhas() {
 
 function adicionarLinhaMpProduto() {
   if (!cadProdMpContainer) return;
+
+  if (!materiasPrima.length) {
+    alert('Cadastre matérias-primas primeiro na tela "Matéria-prima".');
+  }
 
   const linha = document.createElement('div');
   linha.className = 'cad-prod-mp-item';
@@ -812,7 +954,7 @@ function renderProdutosLista() {
     return;
   }
 
-  const ordenados = [...produtos].sort((a,b) => {
+  const ordenados = [...produtos].sort((a, b) => {
     const na = (a.nome || '').toLowerCase();
     const nb = (b.nome || '').toLowerCase();
     if (na < nb) return -1;
@@ -913,6 +1055,7 @@ if (cadProdSalvar) {
         createdAt: serverTimestamp()
       });
       resetProdutoForm();
+      mostrarProdutosListaView();
     } catch (err) {
       console.error('Erro ao salvar produto:', err);
       alert('Não foi possível salvar o produto.');
@@ -1224,7 +1367,7 @@ function renderListaPedidos() {
       return;
     }
 
-    const ordenados = [...pedidos].sort((a,b) => {
+    const ordenados = [...pedidos].sort((a, b) => {
       const ta = a.createdAt?.seconds || 0;
       const tb = b.createdAt?.seconds || 0;
       return tb - ta; // mais recentes primeiro
@@ -1265,7 +1408,7 @@ function renderListaStatusPedidos() {
     return;
   }
 
-  const ordenados = [...pedidos].sort((a,b) => {
+  const ordenados = [...pedidos].sort((a, b) => {
     const ta = a.createdAt?.seconds || 0;
     const tb = b.createdAt?.seconds || 0;
     return tb - ta;
@@ -1397,7 +1540,6 @@ function limparFinancas() {
   lancTipo.value = '';
   atualizarBlocosFinancas();
 
-  // Não vou resetar cada campo individualmente agora; fica mais simples:
   document.querySelectorAll('.lanc-bloco input, .lanc-bloco textarea').forEach(inp => {
     inp.value = '';
   });
@@ -1630,6 +1772,9 @@ function init() {
 
   // inicializa novo pedido com uma linha
   limparNovoPedido();
+
+  // inicializa formulário de produto
+  resetProdutoForm();
 
   // render agenda inicial
   renderAgenda();
