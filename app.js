@@ -1,21 +1,56 @@
-// app.js (module)
-
-// =========================
-// IMPORTS FIREBASE
-// =========================
-import { db } from './firebase.js';
+// app.js - Catrion Lumi
+// ===============================
+// IMPORTS FIREBASE (modular)
+// ===============================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
+  getFirestore,
   collection,
   addDoc,
-  onSnapshot,
-  deleteDoc,
   doc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  query,
+  orderBy,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-// =========================
-// NAVIGAÇÃO / VIEWS
-// =========================
+// ===============================
+// FIREBASE INIT
+// ===============================
+const firebaseConfig = {
+  apiKey: "AIzaSyBRYiyP6NfaYt0QORlOo8s0w4oJkOpMZ7w",
+  authDomain: "catrion-lumi.firebaseapp.com",
+  projectId: "catrion-lumi",
+  storageBucket: "catrion-lumi.firebasestorage.app",
+  messagingSenderId: "236769242398",
+  appId: "1:236769242398:web:c4f734e313b9821b5bed0f"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+// ===============================
+// ESTADO EM MEMÓRIA
+// ===============================
+let clientes = [];        // {id, nome, tel, end, cid, est}
+let produtos = [];        // {id, nome, unidade, preco, custo}
+let materiasPrimas = [];  // {id, nome, unidade}
+let fornecedores = [];    // {id, ...}
+
+// para cadastros (ID em edição)
+let clienteEditId = null;
+let produtoEditId = null;
+let mpEditId = null;
+let fornecedorEditId = null;
+
+// pedidos em memória (ainda não persiste no Firestore)
+let pedidoItens = []; // cada item: {clienteNome, produtoNome, quantidade, totalVenda, totalCusto}
+
+// ===============================
+// NAV / VIEWS
+// ===============================
 const views = document.querySelectorAll('.view');
 const header = document.getElementById('app-header');
 const bottomNav = document.getElementById('bottom-nav');
@@ -31,12 +66,13 @@ function showView(name) {
 
   const authViews = ['login', 'register'];
   const isAuth = authViews.includes(name);
+
   if (isAuth) {
-    if (header) header.style.display = 'none';
-    if (bottomNav) bottomNav.style.display = 'none';
+    header && header.classList.remove('visible');
+    bottomNav && bottomNav.classList.remove('visible');
   } else {
-    if (header) header.style.display = 'flex';
-    if (bottomNav) bottomNav.style.display = 'block';
+    header && header.classList.add('visible');
+    bottomNav && bottomNav.classList.add('visible');
   }
 
   document.querySelectorAll('.nav-item').forEach(btn => {
@@ -49,9 +85,12 @@ function showView(name) {
   });
 }
 
-// =========================
-// LOGIN / CADASTRO (APENAS VISUAL AGORA)
-// =========================
+// Bypass login: já entra no HOME
+showView('home');
+
+// ===============================
+// LOGIN / CADASTRO (desabilitado por enquanto)
+// ===============================
 const linkCadastro = document.getElementById('link-cadastro');
 const linkVoltarLogin = document.getElementById('link-voltar-login');
 const btnLogin = document.getElementById('btn-login');
@@ -64,16 +103,19 @@ if (linkVoltarLogin) {
   linkVoltarLogin.addEventListener('click', () => showView('login'));
 }
 if (btnLogin) {
-  btnLogin.addEventListener('click', () => showView('home'));
+  btnLogin.addEventListener('click', () => {
+    // login desabilitado: entra direto no app
+    showView('home');
+  });
 }
 if (btnRegistrar) {
   btnRegistrar.addEventListener('click', () => {
-    // depois vamos validar e salvar no Firebase Auth
+    // cadastro desabilitado: só volta pro login
     showView('login');
   });
 }
 
-// BOTÕES com data-target-view (home, config, etc)
+// BOTÕES com data-target-view (home, config, etc.)
 document.querySelectorAll('[data-target-view]').forEach(btn => {
   btn.addEventListener('click', () => {
     const target = btn.dataset.targetView;
@@ -99,15 +141,15 @@ document.querySelectorAll('.toggle-pass').forEach(btn => {
   });
 });
 
-// Email fake em Config
+// Email em Config (placeholder)
 const configEmail = document.getElementById('config-email');
 if (configEmail) {
-  configEmail.textContent = 'email@exemplo.com';
+  configEmail.textContent = 'Modo teste (sem login)';
 }
 
-// =========================
-// CALENDÁRIO AGENDA (VISUAL)
-// =========================
+// ===============================
+// CALENDÁRIO AGENDA
+// ===============================
 const agendaGrid = document.getElementById('agenda-grid');
 const agendaLabel = document.getElementById('agenda-month-label');
 const agendaPrev = document.getElementById('agenda-prev');
@@ -123,7 +165,7 @@ let today = new Date();
 let calMonth = today.getMonth();
 let calYear = today.getFullYear();
 
-// depois vamos preencher com dados reais de agenda
+// por enquanto agendaEventos vazio (depois ligamos na Agenda do registro)
 const agendaEventos = {};
 
 function renderAgenda() {
@@ -169,7 +211,7 @@ function renderAgenda() {
         cell.classList.add('today');
       }
 
-      const dateKey = `${calYear}-${String(calMonth + 1).padStart(2,'0')}-${String(dayNumber).padStart(2,'0')}`;
+      const dateKey = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
       if (agendaEventos[dateKey]) {
         cell.classList.add('has-event');
       }
@@ -203,27 +245,47 @@ if (agendaGrid) {
   renderAgenda();
 }
 
-// =========================
-// FAB (+) para todos os contextos
-// =========================
-document.querySelectorAll('.fab-add').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const ctx = btn.dataset.addContext || 'registro';
+// ===============================
+// VENDAS - MÊS NO CHIP
+// ===============================
+const vendasMesChip = document.getElementById('vendas-mes-chip');
+const vendasMesPrev = document.getElementById('vendas-mes-prev');
+const vendasMesNext = document.getElementById('vendas-mes-next');
 
-    // caso específico: Novo Pedido
-    if (btn.id === 'fab-add-item') {
-      abrirModalItem();
-      return;
+let vendasMonth = today.getMonth();
+let vendasYear = today.getFullYear();
+
+function renderVendasMes() {
+  if (vendasMesChip) {
+    vendasMesChip.textContent = `${monthNames[vendasMonth]}/${vendasYear}`;
+  }
+}
+
+if (vendasMesPrev && vendasMesNext) {
+  vendasMesPrev.addEventListener('click', () => {
+    vendasMonth--;
+    if (vendasMonth < 0) {
+      vendasMonth = 11;
+      vendasYear--;
     }
-
-    // demais "+" usam modal genérico
-    abrirModalGenerico(ctx);
+    renderVendasMes();
   });
-});
 
-// =========================
-// MODAL GENÉRICO PARA OUTROS "+" (AINDA FICTÍCIO)
-// =========================
+  vendasMesNext.addEventListener('click', () => {
+    vendasMonth++;
+    if (vendasMonth > 11) {
+      vendasMonth = 0;
+      vendasYear++;
+    }
+    renderVendasMes();
+  });
+}
+
+renderVendasMes();
+
+// ===============================
+// MODAL GENÉRICO (FINANÇAS / AGENDA REGISTRO por enquanto)
+// ===============================
 const modalGeneric = document.getElementById('modal-generic');
 const modalGenericTitle = document.getElementById('modal-generic-title');
 const modalGenericText = document.getElementById('modal-generic-text');
@@ -264,93 +326,43 @@ if (modalGenericSave) {
   });
 }
 
-// =========================
-// MÊS NA TELA DE VENDAS
-// =========================
-const vendasMesChip = document.getElementById('vendas-mes-chip');
-const vendasMesPrev = document.getElementById('vendas-mes-prev');
-const vendasMesNext = document.getElementById('vendas-mes-next');
+// ===============================
+// FAB (+) - ROTEAMENTO
+// ===============================
+document.querySelectorAll('.fab-add').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.id;
 
-let vendasMonth = today.getMonth();
-let vendasYear = today.getFullYear();
-
-function renderVendasMes() {
-  if (vendasMesChip) {
-    vendasMesChip.textContent = `${monthNames[vendasMonth]}/${vendasYear}`;
-  }
-}
-
-if (vendasMesPrev && vendasMesNext) {
-  vendasMesPrev.addEventListener('click', () => {
-    vendasMonth--;
-    if (vendasMonth < 0) {
-      vendasMonth = 11;
-      vendasYear--;
+    if (id === 'fab-add-item') {
+      abrirModalItem();
+      return;
     }
-    renderVendasMes();
-  });
-
-  vendasMesNext.addEventListener('click', () => {
-    vendasMonth++;
-    if (vendasMonth > 11) {
-      vendasMonth = 0;
-      vendasYear++;
+    if (id === 'fab-add-cliente') {
+      abrirModalCliente(null);
+      return;
     }
-    renderVendasMes();
+    if (id === 'fab-add-produto') {
+      abrirModalProduto(null);
+      return;
+    }
+    if (id === 'fab-add-mp') {
+      abrirModalMp(null);
+      return;
+    }
+    if (id === 'fab-add-fornecedor') {
+      abrirModalFornecedor(null);
+      return;
+    }
+
+    // fallback: modal genérico
+    const ctx = btn.dataset.addContext || 'registro';
+    abrirModalGenerico(ctx);
   });
-}
+});
 
-renderVendasMes();
-
-// =========================
-// DADOS EM MEMÓRIA + FIRESTORE
-// =========================
-
-// coleções do Firestore:
-// - clientes: {nome, tel, end, cid, est}
-// - produtos: {nome, preco, custo}
-// - pedidos:  {clienteNome, itens[], totalVenda, totalCusto, status, statusPagamento, createdAt}
-
-let clientes = [];
-let produtos = [];
-let pedidos = [];
-
-// listeners em tempo real
-function startClientesListener() {
-  const ref = collection(db, 'clientes');
-  onSnapshot(ref, snapshot => {
-    clientes = snapshot.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-  });
-}
-
-function startProdutosListener() {
-  const ref = collection(db, 'produtos');
-  onSnapshot(ref, snapshot => {
-    produtos = snapshot.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-  });
-}
-
-function startPedidosListener() {
-  const ref = collection(db, 'pedidos');
-  onSnapshot(ref, snapshot => {
-    pedidos = snapshot.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }));
-    renderizarItensPedido();
-  });
-}
-
-// =========================
-// NOVO PEDIDO - LISTA NA HOME (AGRUPADO POR CLIENTE)
-// =========================
-
+// ===============================
+// NOVO PEDIDO - LISTA NA TELA
+// ===============================
 const listaItensEl = document.getElementById('lista-itens-pedido');
 const pedidoTotalEl = document.getElementById('pedido-total');
 
@@ -367,21 +379,21 @@ if (btnEditPedidos) {
 function renderizarItensPedido() {
   if (!listaItensEl) return;
 
-  if (!pedidos.length) {
+  if (!pedidoItens.length) {
     listaItensEl.innerHTML = '<p class="item-meta">Nenhum item adicionado ainda. Toque em “+” para incluir.</p>';
     if (pedidoTotalEl) pedidoTotalEl.textContent = 'Total do pedido: R$ 0,00';
     return;
   }
 
-  // agrupar por cliente
-  const gruposMap = {};
-  pedidos.forEach(p => {
-    const key = p.clienteNome && p.clienteNome.trim()
-      ? p.clienteNome.trim()
+  const grupos = {};
+
+  pedidoItens.forEach(item => {
+    const key = item.clienteNome && item.clienteNome.trim()
+      ? item.clienteNome.trim()
       : '(sem cliente)';
 
-    if (!gruposMap[key]) {
-      gruposMap[key] = {
+    if (!grupos[key]) {
+      grupos[key] = {
         clienteNome: key,
         itens: [],
         totalVenda: 0,
@@ -389,32 +401,20 @@ function renderizarItensPedido() {
       };
     }
 
-    const grupo = gruposMap[key];
-
-    if (Array.isArray(p.itens)) {
-      p.itens.forEach(it => {
-        grupo.itens.push(it);
-        grupo.totalVenda += Number(it.totalVenda || 0);
-        grupo.totalCusto += Number(it.totalCusto || 0);
-      });
-    } else {
-      grupo.totalVenda += Number(p.totalVenda || 0);
-      grupo.totalCusto += Number(p.totalCusto || 0);
-    }
+    grupos[key].itens.push(item);
+    grupos[key].totalVenda += item.totalVenda;
+    grupos[key].totalCusto += item.totalCusto;
   });
 
-  const gruposArr = Object.values(gruposMap);
+  const gruposArr = Object.values(grupos);
 
-  // total global
   let totalGlobal = 0;
   gruposArr.forEach(g => totalGlobal += g.totalVenda);
 
   const html = gruposArr.map((grupo, idx) => {
-    // resumo dos produtos (soma por nome)
     const porProduto = {};
     grupo.itens.forEach(it => {
-      const nome = it.produtoNome || 'Produto';
-      porProduto[nome] = (porProduto[nome] || 0) + Number(it.quantidade || 0);
+      porProduto[it.produtoNome] = (porProduto[it.produtoNome] || 0) + it.quantidade;
     });
 
     const resumoProdutos = Object.entries(porProduto)
@@ -423,9 +423,9 @@ function renderizarItensPedido() {
 
     const detalhes = grupo.itens.map(it => `
       <li>
-        ${it.produtoNome || 'Produto'} — Qtd: ${it.quantidade || 0}
-        • Venda: R$ ${(it.totalVenda || 0).toFixed ? it.totalVenda.toFixed(2) : Number(it.totalVenda || 0).toFixed(2)}
-        • Custo: R$ ${(it.totalCusto || 0).toFixed ? it.totalCusto.toFixed(2) : Number(it.totalCusto || 0).toFixed(2)}
+        ${it.produtoNome} — Qtd: ${it.quantidade}
+        • Venda: R$ ${it.totalVenda.toFixed(2)}
+        • Custo: R$ ${it.totalCusto.toFixed(2)}
       </li>
     `).join('');
 
@@ -463,46 +463,42 @@ function renderizarItensPedido() {
     });
   });
 
-  // modo edição: remover grupo (apaga todos os pedidos desse cliente no Firestore)
+  // modo edição: remover grupo
   if (editMode) {
     const gruposRef = gruposArr;
     listaItensEl.querySelectorAll('[data-remover-grupo]').forEach(btn => {
-      btn.addEventListener('click', async e => {
+      btn.addEventListener('click', e => {
         e.stopPropagation();
         const idx = parseInt(btn.dataset.removerGrupo, 10);
         if (isNaN(idx)) return;
 
         const grupo = gruposRef[idx];
-        const nome = grupo.clienteNome;
+        const key = grupo.clienteNome;
 
-        const promises = pedidos
-          .filter(p => {
-            const k = p.clienteNome && p.clienteNome.trim()
-              ? p.clienteNome.trim()
-              : '(sem cliente)';
-            return k === nome;
-          })
-          .map(p => deleteDoc(doc(db, 'pedidos', p.id)));
+        pedidoItens = pedidoItens.filter(it => {
+          const k = it.clienteNome && it.clienteNome.trim()
+            ? it.clienteNome.trim()
+            : '(sem cliente)';
+          return k !== key;
+        });
 
-        try {
-          await Promise.all(promises);
-        } catch (err) {
-          console.error('Erro ao remover pedidos do cliente:', err);
-          alert('Não foi possível remover os pedidos desse cliente.');
-        }
+        renderizarItensPedido();
       });
     });
   }
 }
 
-// =========================
-// MODAL MODERNO - NOVO PEDIDO
-// =========================
+// render inicial
+renderizarItensPedido();
+
+// ===============================
+// MODAL - NOVO PEDIDO
+// ===============================
 const modalItem = document.getElementById('modal-item');
 const btnModalFechar = document.getElementById('modal-item-fechar');
 const btnModalCancelar = document.getElementById('modal-item-cancelar');
 const btnModalSalvar = document.getElementById('modal-item-salvar');
-const btnAddProduto = document.getElementById('btn-add-produto');
+const btnAddProdutoModal = document.getElementById('btn-add-produto');
 
 const campoBuscaCliente = document.getElementById('pedido-busca-cliente');
 const listaClientesEl = document.getElementById('lista-clientes');
@@ -579,7 +575,7 @@ function adicionarProdutoLinha() {
   configurarQuantidade(div);
 }
 
-// ---------- BUSCA CLIENTE (USA COLEÇÃO 'clientes') ----------
+// ---------- BUSCA CLIENTE ----------
 function configurarBuscaCliente() {
   if (!campoBuscaCliente || !listaClientesEl) return;
 
@@ -593,13 +589,13 @@ function configurarBuscaCliente() {
     }
 
     clientes
-      .filter(c => (c.nome || '').toLowerCase().includes(texto))
+      .filter(c => c.nome.toLowerCase().includes(texto))
       .forEach(c => {
         const item = document.createElement('div');
         item.className = 'autocomplete-item';
-        item.textContent = c.nome || '(sem nome)';
+        item.textContent = c.nome;
         item.addEventListener('click', () => {
-          campoBuscaCliente.value = c.nome || '';
+          campoBuscaCliente.value = c.nome;
           listaClientesEl.innerHTML = '';
           listaClientesEl.style.display = 'none';
 
@@ -614,12 +610,11 @@ function configurarBuscaCliente() {
         listaClientesEl.appendChild(item);
       });
 
-    // removido o "+ Cadastrar cliente" por enquanto, para não quebrar o fluxo
-    listaClientesEl.style.display = 'block';
+    listaClientesEl.style.display = listaClientesEl.children.length ? 'block' : 'none';
   });
 }
 
-// ---------- BUSCA PRODUTO + VALORES (USA COLEÇÃO 'produtos') ----------
+// ---------- BUSCA PRODUTO + VALORES ----------
 function configurarBuscaProduto(divProduto) {
   const inputBusca = divProduto.querySelector('.produto-busca');
   const lista = divProduto.querySelector('.autocomplete-list');
@@ -639,17 +634,15 @@ function configurarBuscaProduto(divProduto) {
     }
 
     produtos
-      .filter(p => (p.nome || '').toLowerCase().includes(texto))
+      .filter(p => p.nome.toLowerCase().includes(texto))
       .forEach(p => {
         const item = document.createElement('div');
-        const precoNum = Number(p.preco || 0);
         item.className = 'autocomplete-item';
-        item.textContent = `${p.nome || 'Produto'} — R$ ${precoNum.toFixed(2)}`;
+        item.textContent = `${p.nome} — R$ ${p.preco.toFixed(2)}`;
         item.addEventListener('click', () => {
-          inputBusca.value = p.nome || '';
-          inputBusca.dataset.preco = precoNum;
-          inputBusca.dataset.custo = Number(p.custo || 0);
-          inputBusca.dataset.produtoId = p.id || '';
+          inputBusca.value = p.nome;
+          inputBusca.dataset.preco = p.preco;
+          inputBusca.dataset.custo = p.custo;
 
           atualizarValoresProduto(divProduto);
 
@@ -659,8 +652,7 @@ function configurarBuscaProduto(divProduto) {
         lista.appendChild(item);
       });
 
-    // removido o "+ Cadastrar produto" pra não quebrar o fluxo ainda
-    lista.style.display = 'block';
+    lista.style.display = lista.children.length ? 'block' : 'none';
   });
 }
 
@@ -700,12 +692,8 @@ function atualizarTotaisModal() {
     const custoEl = div.querySelector('.produto-total-custo');
     if (!vendaEl || !custoEl) return;
 
-    const vendaNum = Number(
-      (vendaEl.textContent || '0').replace('R$','').replace('.','').replace(',','.') || 0
-    );
-    const custoNum = Number(
-      (custoEl.textContent || '0').replace('R$','').replace('.','').replace(',','.') || 0
-    );
+    const vendaNum = Number(vendaEl.textContent.replace('R$', '').trim() || 0);
+    const custoNum = Number(custoEl.textContent.replace('R$', '').trim() || 0);
 
     totalVenda += vendaNum;
     totalCusto += custoNum;
@@ -725,11 +713,11 @@ function atualizarTotaisModal() {
   if (lucroSpan) lucroSpan.textContent = lucroPerc.toFixed(1) + '%';
 }
 
-// ---------- SALVAR DO MODAL PARA FIRESTORE ('pedidos') ----------
-async function salvarPedidoDoModal() {
+// SALVAR DO MODAL PARA A LISTA (ainda só em memória)
+function salvarPedidoDoModal() {
   const clienteNome = campoBuscaCliente ? campoBuscaCliente.value.trim() : '';
 
-  const itens = [];
+  const novos = [];
 
   document.querySelectorAll('.produto-item').forEach(div => {
     const inputBusca = div.querySelector('.produto-busca');
@@ -741,73 +729,734 @@ async function salvarPedidoDoModal() {
     const preco = Number(inputBusca.dataset.preco || 0);
     const custo = Number(inputBusca.dataset.custo || 0);
     const qtd = Number(qtdInput.value || 0);
-    const produtoId = inputBusca.dataset.produtoId || null;
 
     if (!nomeProd || qtd <= 0 || preco <= 0) return;
 
-    const totalVenda = qtd * preco;
-    const totalCusto = qtd * custo;
-
-    itens.push({
-      produtoId,
+    novos.push({
+      clienteNome,
       produtoNome: nomeProd,
       quantidade: qtd,
-      precoUnit: preco,
-      custoUnit: custo,
-      totalVenda,
-      totalCusto
+      totalVenda: qtd * preco,
+      totalCusto: qtd * custo
     });
   });
 
-  if (!itens.length) {
+  if (!novos.length) {
     alert('Adicione pelo menos um produto válido.');
     return;
   }
 
-  // soma pra salvar no documento
-  let totalVenda = 0;
-  let totalCusto = 0;
-  itens.forEach(it => {
-    totalVenda += it.totalVenda;
-    totalCusto += it.totalCusto;
-  });
-
-  try {
-    await addDoc(collection(db, 'pedidos'), {
-      clienteNome: clienteNome || '(sem cliente)',
-      itens,
-      totalVenda,
-      totalCusto,
-      status: 'aguardando',
-      statusPagamento: 'a receber',
-      createdAt: serverTimestamp()
-    });
-
-    fecharModalItem();
-  } catch (err) {
-    console.error('Erro ao salvar pedido:', err);
-    alert('Não foi possível salvar o pedido.');
-  }
+  pedidoItens = pedidoItens.concat(novos);
+  renderizarItensPedido();
+  fecharModalItem();
 }
 
 // listeners do modal
 if (campoBuscaCliente) configurarBuscaCliente();
-if (btnAddProduto) btnAddProduto.addEventListener('click', adicionarProdutoLinha);
+if (btnAddProdutoModal) btnAddProdutoModal.addEventListener('click', adicionarProdutoLinha);
 if (btnModalFechar) btnModalFechar.addEventListener('click', fecharModalItem);
 if (btnModalCancelar) btnModalCancelar.addEventListener('click', fecharModalItem);
 if (btnModalSalvar) btnModalSalvar.addEventListener('click', salvarPedidoDoModal);
 
-// =========================
-// INIT GERAL
-// =========================
-function init() {
-  // listeners em tempo real
-  startClientesListener();
-  startProdutosListener();
-  startPedidosListener();
+// ===============================
+// CADASTRO DE CLIENTES (CRUD Firestore)
+// ===============================
+const clientesBuscaInput = document.getElementById('clientes-busca');
+const clientesListEl = document.getElementById('clientes-list');
+const fabAddCliente = document.getElementById('fab-add-cliente');
 
-  // entrar direto na home (login desabilitado por enquanto)
-  showView('home');
+// modal cliente
+const modalCliente = document.getElementById('modal-cliente');
+const modalClienteTitulo = document.getElementById('modal-cliente-titulo');
+const modalClienteFechar = document.getElementById('modal-cliente-fechar');
+const clienteNomeInput = document.getElementById('cliente-nome');
+const clienteTelInput = document.getElementById('cliente-telefone');
+const clienteEndInput = document.getElementById('cliente-endereco');
+const clienteCidInput = document.getElementById('cliente-cidade');
+const clienteEstInput = document.getElementById('cliente-estado');
+const clienteExcluirBtn = document.getElementById('cliente-excluir');
+const clienteCancelarBtn = document.getElementById('cliente-cancelar');
+const clienteSalvarBtn = document.getElementById('cliente-salvar');
+
+function renderClientesLista(filtro = '') {
+  if (!clientesListEl) return;
+  const texto = (filtro || '').toLowerCase();
+
+  const filtrados = clientes
+    .filter(c => c.nome.toLowerCase().includes(texto))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+  if (!filtrados.length) {
+    clientesListEl.innerHTML = '<p class="item-meta">Nenhum cliente cadastrado.</p>';
+    return;
+  }
+
+  clientesListEl.innerHTML = filtrados.map(c => `
+    <div class="item-card cliente-card" data-id="${c.id}">
+      <div class="item-row">
+        <span class="item-title">${c.nome}</span>
+      </div>
+      <div class="item-meta">
+        ${c.tel ? `Tel: ${c.tel} • ` : ''}${c.cid || ''}${c.est ? ' - ' + c.est : ''}
+      </div>
+      ${c.end ? `<div class="item-meta">Endereço: ${c.end}</div>` : ''}
+    </div>
+  `).join('');
+
+  clientesListEl.querySelectorAll('.cliente-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      abrirModalCliente(id);
+    });
+  });
 }
 
-init();
+function abrirModalCliente(idOrNull) {
+  if (!modalCliente) return;
+  clienteEditId = idOrNull;
+
+  if (clienteEditId) {
+    const c = clientes.find(x => x.id === clienteEditId);
+    if (!c) return;
+    modalClienteTitulo.textContent = 'Editar cliente';
+    clienteNomeInput.value = c.nome || '';
+    clienteTelInput.value = c.tel || '';
+    clienteEndInput.value = c.end || '';
+    clienteCidInput.value = c.cid || '';
+    clienteEstInput.value = c.est || '';
+    if (clienteExcluirBtn) clienteExcluirBtn.style.display = 'inline-block';
+  } else {
+    modalClienteTitulo.textContent = 'Novo cliente';
+    clienteNomeInput.value = '';
+    clienteTelInput.value = '';
+    clienteEndInput.value = '';
+    clienteCidInput.value = '';
+    clienteEstInput.value = '';
+    if (clienteExcluirBtn) clienteExcluirBtn.style.display = 'none';
+  }
+
+  modalCliente.classList.add('visible');
+}
+
+function fecharModalCliente() {
+  if (!modalCliente) return;
+  modalCliente.classList.remove('visible');
+  clienteEditId = null;
+}
+
+async function salvarClienteFirestore() {
+  const nome = (clienteNomeInput.value || '').trim();
+  const telefone = (clienteTelInput.value || '').trim();
+  const endereco = (clienteEndInput.value || '').trim();
+  const cidade = (clienteCidInput.value || '').trim();
+  const estado = (clienteEstInput.value || '').trim();
+
+  if (!nome) {
+    alert('Informe o nome do cliente.');
+    return;
+  }
+
+  const payload = { nome, telefone, endereco, cidade, estado };
+
+  try {
+    if (clienteEditId) {
+      await updateDoc(doc(db, 'clientes', clienteEditId), payload);
+    } else {
+      await addDoc(collection(db, 'clientes'), {
+        ...payload,
+        createdAt: serverTimestamp()
+      });
+    }
+    fecharModalCliente();
+  } catch (err) {
+    console.error('Erro ao salvar cliente', err);
+    alert('Erro ao salvar cliente.');
+  }
+}
+
+async function excluirClienteFirestore() {
+  if (!clienteEditId) {
+    fecharModalCliente();
+    return;
+  }
+  if (!confirm('Deseja realmente excluir este cliente?')) return;
+
+  try {
+    await deleteDoc(doc(db, 'clientes', clienteEditId));
+    fecharModalCliente();
+  } catch (err) {
+    console.error('Erro ao excluir cliente', err);
+    alert('Erro ao excluir cliente.');
+  }
+}
+
+if (clientesBuscaInput) {
+  clientesBuscaInput.addEventListener('input', () => {
+    renderClientesLista(clientesBuscaInput.value);
+  });
+}
+if (fabAddCliente) fabAddCliente.addEventListener('click', () => abrirModalCliente(null));
+if (modalClienteFechar) modalClienteFechar.addEventListener('click', fecharModalCliente);
+if (clienteCancelarBtn) clienteCancelarBtn.addEventListener('click', fecharModalCliente);
+if (clienteSalvarBtn) clienteSalvarBtn.addEventListener('click', salvarClienteFirestore);
+if (clienteExcluirBtn) clienteExcluirBtn.addEventListener('click', excluirClienteFirestore);
+
+// ===============================
+// CADASTRO DE PRODUTOS (CRUD Firestore)
+// ===============================
+const produtosBuscaInput = document.getElementById('produtos-busca');
+const produtosListEl = document.getElementById('produtos-list');
+const fabAddProduto = document.getElementById('fab-add-produto');
+
+const modalProduto = document.getElementById('modal-produto');
+const modalProdutoTitulo = document.getElementById('modal-produto-titulo');
+const modalProdutoFechar = document.getElementById('modal-produto-fechar');
+const produtoNomeInput = document.getElementById('produto-nome');
+const produtoUnidadeSelect = document.getElementById('produto-unidade');
+const produtoPrecoInput = document.getElementById('produto-preco');
+const produtoCustoInput = document.getElementById('produto-custo');
+const produtoExcluirBtn = document.getElementById('produto-excluir');
+const produtoCancelarBtn = document.getElementById('produto-cancelar');
+const produtoSalvarBtn = document.getElementById('produto-salvar');
+
+function renderProdutosLista(filtro = '') {
+  if (!produtosListEl) return;
+  const texto = (filtro || '').toLowerCase();
+
+  const filtrados = produtos
+    .filter(p => p.nome.toLowerCase().includes(texto))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+  if (!filtrados.length) {
+    produtosListEl.innerHTML = '<p class="item-meta">Nenhum produto cadastrado.</p>';
+    return;
+  }
+
+  produtosListEl.innerHTML = filtrados.map(p => {
+    const margem =
+      p.custo > 0 ? (((p.preco - p.custo) / p.custo) * 100).toFixed(1) + '%' : '—';
+    return `
+      <div class="item-card produto-card" data-id="${p.id}">
+        <div class="item-row">
+          <span class="item-title">${p.nome}</span>
+        </div>
+        <div class="item-meta">
+          Unidade: ${p.unidade || '—'}
+        </div>
+        <div class="item-meta">
+          Preço: R$ ${p.preco.toFixed(2)} • Custo: R$ ${p.custo.toFixed(2)} • Lucro: ${margem}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  produtosListEl.querySelectorAll('.produto-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      abrirModalProduto(id);
+    });
+  });
+}
+
+function abrirModalProduto(idOrNull) {
+  if (!modalProduto) return;
+  produtoEditId = idOrNull;
+
+  if (produtoEditId) {
+    const p = produtos.find(x => x.id === produtoEditId);
+    if (!p) return;
+    modalProdutoTitulo.textContent = 'Editar produto';
+    produtoNomeInput.value = p.nome || '';
+    produtoUnidadeSelect.value = p.unidade || 'peça';
+    produtoPrecoInput.value = p.preco || 0;
+    produtoCustoInput.value = p.custo || 0;
+    if (produtoExcluirBtn) produtoExcluirBtn.style.display = 'inline-block';
+  } else {
+    modalProdutoTitulo.textContent = 'Novo produto';
+    produtoNomeInput.value = '';
+    produtoUnidadeSelect.value = 'peça';
+    produtoPrecoInput.value = '';
+    produtoCustoInput.value = '';
+    if (produtoExcluirBtn) produtoExcluirBtn.style.display = 'none';
+  }
+
+  modalProduto.classList.add('visible');
+}
+
+function fecharModalProduto() {
+  if (!modalProduto) return;
+  modalProduto.classList.remove('visible');
+  produtoEditId = null;
+}
+
+async function salvarProdutoFirestore() {
+  const nome = (produtoNomeInput.value || '').trim();
+  const unidade = produtoUnidadeSelect.value || 'peça';
+  const preco = Number(produtoPrecoInput.value || 0);
+  const custo = Number(produtoCustoInput.value || 0);
+
+  if (!nome) {
+    alert('Informe a descrição do produto.');
+    return;
+  }
+
+  const payload = { nome, unidade, preco, custo };
+
+  try {
+    if (produtoEditId) {
+      await updateDoc(doc(db, 'produtos', produtoEditId), payload);
+    } else {
+      await addDoc(collection(db, 'produtos'), {
+        ...payload,
+        createdAt: serverTimestamp()
+      });
+    }
+    fecharModalProduto();
+  } catch (err) {
+    console.error('Erro ao salvar produto', err);
+    alert('Erro ao salvar produto.');
+  }
+}
+
+async function excluirProdutoFirestore() {
+  if (!produtoEditId) {
+    fecharModalProduto();
+    return;
+  }
+  if (!confirm('Deseja realmente excluir este produto?')) return;
+
+  try {
+    await deleteDoc(doc(db, 'produtos', produtoEditId));
+    fecharModalProduto();
+  } catch (err) {
+    console.error('Erro ao excluir produto', err);
+    alert('Erro ao excluir produto.');
+  }
+}
+
+if (produtosBuscaInput) {
+  produtosBuscaInput.addEventListener('input', () => {
+    renderProdutosLista(produtosBuscaInput.value);
+  });
+}
+if (fabAddProduto) fabAddProduto.addEventListener('click', () => abrirModalProduto(null));
+if (modalProdutoFechar) modalProdutoFechar.addEventListener('click', fecharModalProduto);
+if (produtoCancelarBtn) produtoCancelarBtn.addEventListener('click', fecharModalProduto);
+if (produtoSalvarBtn) produtoSalvarBtn.addEventListener('click', salvarProdutoFirestore);
+if (produtoExcluirBtn) produtoExcluirBtn.addEventListener('click', excluirProdutoFirestore);
+
+// ===============================
+// CADASTRO DE MATÉRIA-PRIMA (CRUD Firestore básico)
+// ===============================
+const mpBuscaInput = document.getElementById('mp-busca');
+const mpListEl = document.getElementById('mp-list');
+const fabAddMp = document.getElementById('fab-add-mp');
+
+const modalMp = document.getElementById('modal-mp');
+const modalMpTitulo = document.getElementById('modal-mp-titulo');
+const modalMpFechar = document.getElementById('modal-mp-fechar');
+const mpNomeInput = document.getElementById('mp-nome');
+const mpUnidadeSelect = document.getElementById('mp-unidade');
+const mpExcluirBtn = document.getElementById('mp-excluir');
+const mpCancelarBtn = document.getElementById('mp-cancelar');
+const mpSalvarBtn = document.getElementById('mp-salvar');
+
+function renderMpLista(filtro = '') {
+  if (!mpListEl) return;
+  const texto = (filtro || '').toLowerCase();
+
+  const filtrados = materiasPrimas
+    .filter(m => m.nome.toLowerCase().includes(texto))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+  if (!filtrados.length) {
+    mpListEl.innerHTML = '<p class="item-meta">Nenhuma matéria-prima cadastrada.</p>';
+    return;
+  }
+
+  mpListEl.innerHTML = filtrados.map(m => `
+    <div class="item-card mp-card" data-id="${m.id}">
+      <div class="item-row">
+        <span class="item-title">${m.nome}</span>
+      </div>
+      <div class="item-meta">
+        Unidade: ${m.unidade || '—'}
+      </div>
+    </div>
+  `).join('');
+
+  mpListEl.querySelectorAll('.mp-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      abrirModalMp(id);
+    });
+  });
+}
+
+function abrirModalMp(idOrNull) {
+  if (!modalMp) return;
+  mpEditId = idOrNull;
+
+  if (mpEditId) {
+    const m = materiasPrimas.find(x => x.id === mpEditId);
+    if (!m) return;
+    modalMpTitulo.textContent = 'Editar matéria-prima';
+    mpNomeInput.value = m.nome || '';
+    mpUnidadeSelect.value = m.unidade || 'peça';
+    if (mpExcluirBtn) mpExcluirBtn.style.display = 'inline-block';
+  } else {
+    modalMpTitulo.textContent = 'Nova matéria-prima';
+    mpNomeInput.value = '';
+    mpUnidadeSelect.value = 'peça';
+    if (mpExcluirBtn) mpExcluirBtn.style.display = 'none';
+  }
+
+  modalMp.classList.add('visible');
+}
+
+function fecharModalMp() {
+  if (!modalMp) return;
+  modalMp.classList.remove('visible');
+  mpEditId = null;
+}
+
+async function salvarMpFirestore() {
+  const nome = (mpNomeInput.value || '').trim();
+  const unidade = mpUnidadeSelect.value || 'peça';
+
+  if (!nome) {
+    alert('Informe a descrição da matéria-prima.');
+    return;
+  }
+
+  const payload = { nome, unidade };
+
+  try {
+    if (mpEditId) {
+      await updateDoc(doc(db, 'materiasPrimas', mpEditId), payload);
+    } else {
+      await addDoc(collection(db, 'materiasPrimas'), {
+        ...payload,
+        createdAt: serverTimestamp()
+      });
+    }
+    fecharModalMp();
+  } catch (err) {
+    console.error('Erro ao salvar matéria-prima', err);
+    alert('Erro ao salvar matéria-prima.');
+  }
+}
+
+async function excluirMpFirestore() {
+  if (!mpEditId) {
+    fecharModalMp();
+    return;
+  }
+  if (!confirm('Deseja realmente excluir esta matéria-prima?')) return;
+
+  try {
+    await deleteDoc(doc(db, 'materiasPrimas', mpEditId));
+    fecharModalMp();
+  } catch (err) {
+    console.error('Erro ao excluir matéria-prima', err);
+    alert('Erro ao excluir matéria-prima.');
+  }
+}
+
+if (mpBuscaInput) {
+  mpBuscaInput.addEventListener('input', () => {
+    renderMpLista(mpBuscaInput.value);
+  });
+}
+if (fabAddMp) fabAddMp.addEventListener('click', () => abrirModalMp(null));
+if (modalMpFechar) modalMpFechar.addEventListener('click', fecharModalMp);
+if (mpCancelarBtn) mpCancelarBtn.addEventListener('click', fecharModalMp);
+if (mpSalvarBtn) mpSalvarBtn.addEventListener('click', salvarMpFirestore);
+if (mpExcluirBtn) mpExcluirBtn.addEventListener('click', excluirMpFirestore);
+
+// ===============================
+// CADASTRO DE FORNECEDORES (CRUD Firestore básico)
+// ===============================
+const fornecedoresBuscaInput = document.getElementById('fornecedores-busca');
+const fornecedoresListEl = document.getElementById('fornecedores-list');
+const fabAddFornecedor = document.getElementById('fab-add-fornecedor');
+
+const modalFornecedor = document.getElementById('modal-fornecedor');
+const modalFornecedorTitulo = document.getElementById('modal-fornecedor-titulo');
+const modalFornecedorFechar = document.getElementById('modal-fornecedor-fechar');
+
+const fornecedorNomeInput = document.getElementById('fornecedor-nome');
+const fornecedorLocalSelect = document.getElementById('fornecedor-local');
+
+const fornecedorBlocoFisico = document.getElementById('fornecedor-bloco-fisico');
+const fornecedorEnderecoInput = document.getElementById('fornecedor-endereco');
+const fornecedorContatoInput = document.getElementById('fornecedor-contato');
+const fornecedorCidadeInput = document.getElementById('fornecedor-cidade');
+const fornecedorEstadoInput = document.getElementById('fornecedor-estado');
+
+const fornecedorBlocoInternet = document.getElementById('fornecedor-bloco-internet');
+const fornecedorPlataformaInput = document.getElementById('fornecedor-plataforma');
+const fornecedorContatoIntInput = document.getElementById('fornecedor-contato-int');
+const fornecedorCidadeIntInput = document.getElementById('fornecedor-cidade-int');
+const fornecedorEstadoIntInput = document.getElementById('fornecedor-estado-int');
+
+const fornecedorExcluirBtn = document.getElementById('fornecedor-excluir');
+const fornecedorCancelarBtn = document.getElementById('fornecedor-cancelar');
+const fornecedorSalvarBtn = document.getElementById('fornecedor-salvar');
+
+function atualizarBlocosFornecedor() {
+  const tipo = fornecedorLocalSelect.value;
+  if (tipo === 'fisico') {
+    fornecedorBlocoFisico.style.display = 'block';
+    fornecedorBlocoInternet.style.display = 'none';
+  } else {
+    fornecedorBlocoFisico.style.display = 'none';
+    fornecedorBlocoInternet.style.display = 'block';
+  }
+}
+
+if (fornecedorLocalSelect) {
+  fornecedorLocalSelect.addEventListener('change', atualizarBlocosFornecedor);
+}
+
+function renderFornecedoresLista(filtro = '') {
+  if (!fornecedoresListEl) return;
+  const texto = (filtro || '').toLowerCase();
+
+  const filtrados = fornecedores
+    .filter(f => (f.nome || '').toLowerCase().includes(texto))
+    .sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'));
+
+  if (!filtrados.length) {
+    fornecedoresListEl.innerHTML = '<p class="item-meta">Nenhum fornecedor cadastrado.</p>';
+    return;
+  }
+
+  fornecedoresListEl.innerHTML = filtrados.map(f => {
+    let linha2 = '';
+    if (f.tipoLocal === 'fisico') {
+      linha2 = `${f.endereco || ''} ${f.cidade ? '• ' + f.cidade : ''}${f.estado ? ' - ' + f.estado : ''}`;
+    } else {
+      linha2 = `${f.plataforma || ''} ${f.contatoInternet ? '• ' + f.contatoInternet : ''}`;
+    }
+    return `
+      <div class="item-card fornecedor-card" data-id="${f.id}">
+        <div class="item-row">
+          <span class="item-title">${f.nome || '(sem nome)'}</span>
+        </div>
+        <div class="item-meta">
+          Local: ${f.tipoLocal === 'fisico' ? 'Físico' : 'Internet'}
+        </div>
+        ${linha2 ? `<div class="item-meta">${linha2}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  fornecedoresListEl.querySelectorAll('.fornecedor-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      abrirModalFornecedor(id);
+    });
+  });
+}
+
+function abrirModalFornecedor(idOrNull) {
+  if (!modalFornecedor) return;
+  fornecedorEditId = idOrNull;
+
+  if (fornecedorEditId) {
+    const f = fornecedores.find(x => x.id === fornecedorEditId);
+    if (!f) return;
+    modalFornecedorTitulo.textContent = 'Editar fornecedor';
+    fornecedorNomeInput.value = f.nome || '';
+    fornecedorLocalSelect.value = f.tipoLocal || 'fisico';
+
+    fornecedorEnderecoInput.value = f.endereco || '';
+    fornecedorContatoInput.value = f.contato || '';
+    fornecedorCidadeInput.value = f.cidade || '';
+    fornecedorEstadoInput.value = f.estado || '';
+
+    fornecedorPlataformaInput.value = f.plataforma || '';
+    fornecedorContatoIntInput.value = f.contatoInternet || '';
+    fornecedorCidadeIntInput.value = f.cidadeInternet || '';
+    fornecedorEstadoIntInput.value = f.estadoInternet || '';
+
+    if (fornecedorExcluirBtn) fornecedorExcluirBtn.style.display = 'inline-block';
+  } else {
+    modalFornecedorTitulo.textContent = 'Novo fornecedor';
+    fornecedorNomeInput.value = '';
+    fornecedorLocalSelect.value = 'fisico';
+
+    fornecedorEnderecoInput.value = '';
+    fornecedorContatoInput.value = '';
+    fornecedorCidadeInput.value = '';
+    fornecedorEstadoInput.value = '';
+
+    fornecedorPlataformaInput.value = '';
+    fornecedorContatoIntInput.value = '';
+    fornecedorCidadeIntInput.value = '';
+    fornecedorEstadoIntInput.value = '';
+
+    if (fornecedorExcluirBtn) fornecedorExcluirBtn.style.display = 'none';
+  }
+
+  atualizarBlocosFornecedor();
+  modalFornecedor.classList.add('visible');
+}
+
+function fecharModalFornecedor() {
+  if (!modalFornecedor) return;
+  modalFornecedor.classList.remove('visible');
+  fornecedorEditId = null;
+}
+
+async function salvarFornecedorFirestore() {
+  const nome = (fornecedorNomeInput.value || '').trim();
+  const tipoLocal = fornecedorLocalSelect.value || 'fisico';
+
+  if (!nome) {
+    alert('Informe o nome do fornecedor.');
+    return;
+  }
+
+  const payload = {
+    nome,
+    tipoLocal,
+    endereco: fornecedorEnderecoInput.value || '',
+    contato: fornecedorContatoInput.value || '',
+    cidade: fornecedorCidadeInput.value || '',
+    estado: fornecedorEstadoInput.value || '',
+    plataforma: fornecedorPlataformaInput.value || '',
+    contatoInternet: fornecedorContatoIntInput.value || '',
+    cidadeInternet: fornecedorCidadeIntInput.value || '',
+    estadoInternet: fornecedorEstadoIntInput.value || ''
+  };
+
+  try {
+    if (fornecedorEditId) {
+      await updateDoc(doc(db, 'fornecedores', fornecedorEditId), payload);
+    } else {
+      await addDoc(collection(db, 'fornecedores'), {
+        ...payload,
+        createdAt: serverTimestamp()
+      });
+    }
+    fecharModalFornecedor();
+  } catch (err) {
+    console.error('Erro ao salvar fornecedor', err);
+    alert('Erro ao salvar fornecedor.');
+  }
+}
+
+async function excluirFornecedorFirestore() {
+  if (!fornecedorEditId) {
+    fecharModalFornecedor();
+    return;
+  }
+  if (!confirm('Deseja realmente excluir este fornecedor?')) return;
+
+  try {
+    await deleteDoc(doc(db, 'fornecedores', fornecedorEditId));
+    fecharModalFornecedor();
+  } catch (err) {
+    console.error('Erro ao excluir fornecedor', err);
+    alert('Erro ao excluir fornecedor.');
+  }
+}
+
+if (fornecedoresBuscaInput) {
+  fornecedoresBuscaInput.addEventListener('input', () => {
+    renderFornecedoresLista(fornecedoresBuscaInput.value);
+  });
+}
+if (fabAddFornecedor) fabAddFornecedor.addEventListener('click', () => abrirModalFornecedor(null));
+if (modalFornecedorFechar) modalFornecedorFechar.addEventListener('click', fecharModalFornecedor);
+if (fornecedorCancelarBtn) fornecedorCancelarBtn.addEventListener('click', fecharModalFornecedor);
+if (fornecedorSalvarBtn) fornecedorSalvarBtn.addEventListener('click', salvarFornecedorFirestore);
+if (fornecedorExcluirBtn) fornecedorExcluirBtn.addEventListener('click', excluirFornecedorFirestore);
+
+// ===============================
+// FIRESTORE SUBSCRIPTIONS (tempo real)
+// ===============================
+function subscribeClientes() {
+  const colRef = collection(db, 'clientes');
+  const q = query(colRef, orderBy('nome'));
+  onSnapshot(q, snapshot => {
+    clientes = snapshot.docs.map(d => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        nome: data.nome || '',
+        tel: data.telefone || '',
+        end: data.endereco || '',
+        cid: data.cidade || '',
+        est: data.estado || ''
+      };
+    });
+    renderClientesLista(clientesBuscaInput ? clientesBuscaInput.value : '');
+  });
+}
+
+function subscribeProdutos() {
+  const colRef = collection(db, 'produtos');
+  const q = query(colRef, orderBy('nome'));
+  onSnapshot(q, snapshot => {
+    produtos = snapshot.docs.map(d => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        nome: data.nome || '',
+        unidade: data.unidade || '',
+        preco: Number(data.preco || 0),
+        custo: Number(data.custo || 0)
+      };
+    });
+    renderProdutosLista(produtosBuscaInput ? produtosBuscaInput.value : '');
+  });
+}
+
+function subscribeMateriasPrimas() {
+  const colRef = collection(db, 'materiasPrimas');
+  const q = query(colRef, orderBy('nome'));
+  onSnapshot(q, snapshot => {
+    materiasPrimas = snapshot.docs.map(d => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        nome: data.nome || data.descricao || '',
+        unidade: data.unidade || ''
+      };
+    });
+    renderMpLista(mpBuscaInput ? mpBuscaInput.value : '');
+  });
+}
+
+function subscribeFornecedores() {
+  const colRef = collection(db, 'fornecedores');
+  const q = query(colRef, orderBy('nome'));
+  onSnapshot(q, snapshot => {
+    fornecedores = snapshot.docs.map(d => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        nome: data.nome || '',
+        tipoLocal: data.tipoLocal || 'fisico',
+        endereco: data.endereco || '',
+        contato: data.contato || '',
+        cidade: data.cidade || '',
+        estado: data.estado || '',
+        plataforma: data.plataforma || '',
+        contatoInternet: data.contatoInternet || '',
+        cidadeInternet: data.cidadeInternet || '',
+        estadoInternet: data.estadoInternet || ''
+      };
+    });
+    renderFornecedoresLista(fornecedoresBuscaInput ? fornecedoresBuscaInput.value : '');
+  });
+}
+
+// ligar tudo
+subscribeClientes();
+subscribeProdutos();
+subscribeMateriasPrimas();
+subscribeFornecedores();
