@@ -9,7 +9,7 @@
 <body>
   <div class="app">
 
-    <!-- HEADER PRINCIPAL -->
+    <!-- HEADER FIXO -->
     <header class="app-header" id="app-header">
       <div class="logo-lumi-top">
         <div class="logo-lumi-top-icon">L</div>
@@ -25,7 +25,7 @@
       </button>
     </header>
 
-    <!-- HOME -->
+    <!-- HOME (ATIVA INICIAL) -->
     <section class="view active" data-view="home">
       <div class="home-scroll">
         <!-- Bloco Registrar -->
@@ -404,7 +404,7 @@
       </div>
     </section>
 
-    <!-- AGENDA (visual) -->
+    <!-- AGENDA VISUAL -->
     <section class="view" data-view="agenda">
       <div class="list-header">
         <span class="pill-tag">Agenda</span>
@@ -479,7 +479,7 @@
         <div id="lista-clientes-cad"></div>
       </div>
 
-      <!-- FORMULÁRIO (escondido por padrão) -->
+      <!-- FORMULÁRIO -->
       <div class="home-section" id="clientes-form-section" style="display:none;">
         <button class="btn-text" type="button" id="btn-clientes-voltar-lista">
           ← Voltar para lista
@@ -728,9 +728,6 @@
 
       <div class="home-section">
         <div class="section-title">Matérias-primas</div>
-        <div class="form-group">
-          <input type="text" id="estoque-busca" placeholder="Buscar matéria-prima..." />
-        </div>
         <div id="consulta-estoque-lista"></div>
       </div>
     </section>
@@ -741,13 +738,25 @@
         <span class="pill-tag">Consultas</span>
         <div class="list-title">Finanças</div>
         <div class="list-subtitle">
-          Em breve: visão resumida de receitas, custos e lucro. Por enquanto só mostramos que está vivo.
+          Resumo simples de entradas e saídas registradas.
         </div>
       </div>
 
       <div class="home-section">
-        <div class="item-meta">
-          Essa área ainda está em construção. Os lançamentos já são salvos, mas o resumo será montado depois.
+        <div class="section-title">Resumo</div>
+        <div class="vendas-summary-grid">
+          <div class="vendas-summary-card">
+            <div class="vendas-summary-value" id="fin-resumo-entradas">0,00</div>
+            <div class="vendas-summary-label">Entradas (R$)</div>
+          </div>
+          <div class="vendas-summary-card">
+            <div class="vendas-summary-value" id="fin-resumo-saidas">0,00</div>
+            <div class="vendas-summary-label">Saídas (R$)</div>
+          </div>
+          <div class="vendas-summary-card">
+            <div class="vendas-summary-value" id="fin-resumo-saldo">0,00</div>
+            <div class="vendas-summary-label">Saldo (R$)</div>
+          </div>
         </div>
       </div>
     </section>
@@ -774,29 +783,7 @@
         <span class="pill-tag">Configurações</span>
         <div class="list-title">Configurações</div>
         <div class="list-subtitle">
-          Ajuste os dados da conta e do negócio.
-        </div>
-      </div>
-
-      <div class="home-section">
-        <div class="section-title">Minha conta</div>
-        <p class="section-subtitle">
-          Ver e-mail cadastrado, sair do app ou excluir conta.
-        </p>
-
-        <div class="item-card">
-          <div class="item-row">
-            <span class="item-title">E-mail cadastrado</span>
-          </div>
-          <div class="item-meta" id="config-email">
-            email@exemplo.com
-          </div>
-          <div class="item-actions">
-            <button class="btn-text" type="button">Sair da conta</button>
-            <button class="btn-text btn-text-danger" type="button">
-              Excluir conta
-            </button>
-          </div>
+          Ajuste os dados do negócio (apenas local, por enquanto).
         </div>
       </div>
 
@@ -810,7 +797,7 @@
           <label for="config-logo">Logotipo</label>
           <input type="file" id="config-logo" accept="image/*" />
         </div>
-        <button class="btn btn-primary" type="button">
+        <button class="btn btn-primary" type="button" id="config-salvar-negocio">
           Salvar dados do negócio
         </button>
       </div>
@@ -831,7 +818,7 @@
       </div>
     </section>
 
-    <!-- VIEW PEDIDOS (para nav inferior) -->
+    <!-- VIEW PEDIDOS (nav inferior) -->
     <section class="view" data-view="pedidos">
       <div class="list-header">
         <span class="pill-tag">Pedidos</span>
@@ -846,13 +833,13 @@
       </div>
     </section>
 
-    <!-- VENDAS (Resumo simples) -->
+    <!-- VENDAS -->
     <section class="view" data-view="vendas">
       <div class="list-header">
         <span class="pill-tag">Vendas</span>
         <div class="list-title">Resumo de vendas</div>
         <div class="list-subtitle">
-          Em breve vamos colocar filtros por período e resumo de status. Por enquanto é só um somatório simples.
+          Somatório de pedidos marcados como venda.
         </div>
       </div>
 
@@ -871,7 +858,7 @@
       </div>
     </section>
 
-    <!-- NAV INFERIOR -->
+    <!-- NAV INFERIOR FIXA -->
     <nav class="bottom-nav" id="bottom-nav">
       <div class="bottom-nav-inner">
         <button class="nav-item active" data-target-view="home">
@@ -890,7 +877,6 @@
     </nav>
   </div>
 
-  <script type="module" src="firebase.js"></script>
-  <script type="module" src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
