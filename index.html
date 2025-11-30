@@ -9,147 +9,7 @@
 <body>
   <div class="app">
 
-    <!-- LOGIN -->
-    <section class="view active" data-view="login">
-      <div class="auth-wrapper">
-        <div class="logo-lumi-auth">
-          <span>Logo Lumi</span>
-        </div>
-
-        <div class="auth-card">
-          <h1 class="auth-title">Bem-vindo(a)</h1>
-          <p class="auth-subtitle">
-            Organize orçamentos, produção e finanças em um só lugar.
-          </p>
-
-          <div class="form-group">
-            <label for="login-email">E-mail</label>
-            <input
-              type="email"
-              id="login-email"
-              placeholder="seuemail@exemplo.com"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="login-senha">Senha</label>
-            <div class="input-with-toggle">
-              <input
-                type="password"
-                id="login-senha"
-                placeholder="Digite sua senha"
-              />
-              <button
-                class="toggle-pass"
-                type="button"
-                data-target="login-senha"
-              >
-                👁
-              </button>
-            </div>
-          </div>
-
-          <div class="auth-row">
-            <label class="checkbox-inline">
-              <input type="checkbox" id="manter-conectado" />
-              <span>Continuar conectado</span>
-            </label>
-            <button class="btn-text" type="button">Esqueci a senha</button>
-          </div>
-
-          <button class="btn btn-primary" type="button" id="btn-login">
-            Acessar
-          </button>
-        </div>
-
-        <div class="auth-footer">
-          Não tem cadastro?
-          <span class="link" id="link-cadastro">Cadastre-se</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- CADASTRO -->
-    <section class="view" data-view="register">
-      <div class="auth-wrapper">
-        <div class="logo-lumi-auth">
-          <span>Logo Lumi</span>
-        </div>
-
-        <div class="auth-card">
-          <h1 class="auth-title">Criar conta</h1>
-          <p class="auth-subtitle">
-            Leva só alguns instantes para começar a usar o Lumi.
-          </p>
-
-          <div class="form-group">
-            <label for="reg-nome">Nome</label>
-            <input type="text" id="reg-nome" placeholder="Ex: Carla" />
-          </div>
-
-          <div class="form-group">
-            <label for="reg-sobrenome">Sobrenome</label>
-            <input type="text" id="reg-sobrenome" placeholder="Ex: Almeida" />
-          </div>
-
-          <div class="form-group">
-            <label for="reg-email">E-mail</label>
-            <input
-              type="email"
-              id="reg-email"
-              placeholder="seuemail@exemplo.com"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="reg-senha">Senha</label>
-            <div class="input-with-toggle">
-              <input
-                type="password"
-                id="reg-senha"
-                placeholder="Crie uma senha"
-              />
-              <button
-                class="toggle-pass"
-                type="button"
-                data-target="reg-senha"
-              >
-                👁
-              </button>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="reg-senha-confirma">Confirmar senha</label>
-            <div class="input-with-toggle">
-              <input
-                type="password"
-                id="reg-senha-confirma"
-                placeholder="Repita a senha"
-              />
-              <button
-                class="toggle-pass"
-                type="button"
-                data-target="reg-senha-confirma"
-              >
-                👁
-              </button>
-            </div>
-          </div>
-
-          <button class="btn btn-primary" type="button" id="btn-registrar">
-            Criar conta
-          </button>
-        </div>
-
-        <div class="auth-footer">
-          Já tem uma conta?
-          <span class="link" id="link-voltar-login">Voltar para login</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- HEADER APÓS LOGIN -->
+    <!-- HEADER PRINCIPAL -->
     <header class="app-header" id="app-header">
       <div class="logo-lumi-top">
         <div class="logo-lumi-top-icon">L</div>
@@ -166,7 +26,7 @@
     </header>
 
     <!-- HOME -->
-    <section class="view" data-view="home">
+    <section class="view active" data-view="home">
       <div class="home-scroll">
         <!-- Bloco Registrar -->
         <div class="home-section">
@@ -496,7 +356,7 @@
       </div>
     </section>
 
-    <!-- REGISTRAR AGENDA (estrutura simples por enquanto) -->
+    <!-- REGISTRAR AGENDA -->
     <section class="view" data-view="agenda-registro">
       <div class="list-header">
         <span class="pill-tag">Registrar</span>
@@ -603,7 +463,7 @@
       </div>
     </section>
 
-        <!-- CAD CLIENTES -->
+    <!-- CAD CLIENTES -->
     <section class="view" data-view="cad-clientes">
       <div class="list-header">
         <span class="pill-tag">Cadastros</span>
@@ -664,7 +524,7 @@
       <button class="fab-add" type="button" id="fab-add-cliente">+</button>
     </section>
 
-       <!-- CAD PRODUTOS (com matérias-primas) -->
+    <!-- CAD PRODUTOS -->
     <section class="view" data-view="cad-produtos">
       <div class="list-header">
         <span class="pill-tag">Cadastros</span>
@@ -680,7 +540,7 @@
         <div id="lista-produtos-cad"></div>
       </div>
 
-      <!-- FORMULÁRIO (escondido por padrão) -->
+      <!-- FORMULÁRIO -->
       <div class="home-section" id="produtos-form-section" style="display:none;">
         <button class="btn-text" type="button" id="btn-produtos-voltar-lista">
           ← Voltar para lista
@@ -753,8 +613,7 @@
       <button class="fab-add" type="button" id="fab-add-produto">+</button>
     </section>
 
-
-        <!-- CAD MATÉRIA-PRIMA -->
+    <!-- CAD MATÉRIA-PRIMA -->
     <section class="view" data-view="cad-mp">
       <div class="list-header">
         <span class="pill-tag">Cadastros</span>
@@ -808,7 +667,7 @@
       <button class="fab-add" type="button" id="fab-add-mp">+</button>
     </section>
 
-        <!-- CAD FORNECEDORES -->
+    <!-- CAD FORNECEDORES -->
     <section class="view" data-view="cad-fornecedores">
       <div class="list-header">
         <span class="pill-tag">Cadastros</span>
@@ -869,6 +728,9 @@
 
       <div class="home-section">
         <div class="section-title">Matérias-primas</div>
+        <div class="form-group">
+          <input type="text" id="estoque-busca" placeholder="Buscar matéria-prima..." />
+        </div>
         <div id="consulta-estoque-lista"></div>
       </div>
     </section>
