@@ -9,7 +9,7 @@ import {
   addDoc,
   onSnapshot,
   doc,
-  updateDoc,
+ updateDoc,
   deleteDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -22,55 +22,19 @@ const header = document.getElementById('app-header');
 const bottomNav = document.getElementById('bottom-nav');
 
 function showView(name) {
+  // ativa só a view pedida
   views.forEach(v => {
-    if (v.dataset.view === name) {
-      v.classList.add('active');
-    } else {
-      v.classList.remove('active');
-    }
+    v.classList.toggle('active', v.dataset.view === name);
   });
 
-  const authViews = ['login', 'register'];
-  const isAuth = authViews.includes(name);
-  if (isAuth) {
-    if (header) header.style.display = 'none';
-    if (bottomNav) bottomNav.style.display = 'none';
-  } else {
-    if (header) header.style.display = 'flex';
-    if (bottomNav) bottomNav.style.display = 'block';
-  }
+  // SEM TELA DE LOGIN: header e bottom nav sempre visíveis
+  if (header) header.style.display = 'flex';
+  if (bottomNav) bottomNav.style.display = 'block';
 
+  // nav inferior ativa
   document.querySelectorAll('.nav-item').forEach(btn => {
     const target = btn.dataset.targetView;
-    if (target === name) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
-  });
-}
-
-// =========================
-// LOGIN / CADASTRO (VISUAL)
-// =========================
-const linkCadastro = document.getElementById('link-cadastro');
-const linkVoltarLogin = document.getElementById('link-voltar-login');
-const btnLogin = document.getElementById('btn-login');
-const btnRegistrar = document.getElementById('btn-registrar');
-
-if (linkCadastro) {
-  linkCadastro.addEventListener('click', () => showView('register'));
-}
-if (linkVoltarLogin) {
-  linkVoltarLogin.addEventListener('click', () => showView('login'));
-}
-if (btnLogin) {
-  btnLogin.addEventListener('click', () => showView('home'));
-}
-if (btnRegistrar) {
-  btnRegistrar.addEventListener('click', () => {
-    // depois vamos validar e salvar no Firebase Auth
-    showView('login');
+    btn.classList.toggle('active', target === name);
   });
 }
 
@@ -90,7 +54,7 @@ document.querySelectorAll('.nav-item').forEach(btn => {
   });
 });
 
-// Olho da senha
+// Olho da senha (se ainda existir no HTML, não quebra nada)
 document.querySelectorAll('.toggle-pass').forEach(btn => {
   btn.addEventListener('click', () => {
     const targetId = btn.dataset.target;
@@ -123,7 +87,7 @@ let sugestoesPedidosFinancasIniciadas = false;
 let sugestoesPedidosAgendaIniciadas = false;
 
 // =========================
-// LISTENERS FIRESTORE
+/** LISTENERS FIRESTORE **/
 // =========================
 function startClientesListener() {
   const ref = collection(db, 'clientes');
@@ -133,7 +97,7 @@ function startClientesListener() {
       ...d.data()
     }));
     renderListaClientes();
-    // autocomplete de cliente usa o array global, não precisa recriar listener
+    // autocomplete de cliente usa o array global
   });
 }
 
@@ -182,7 +146,6 @@ function startPedidosListener() {
     renderListaPedidos();
     renderListaStatusPedidos();
     atualizarResumoVendas();
-    // auto-completes de pedidos usam array global
   });
 }
 
@@ -540,7 +503,7 @@ if (btnMpLimpar) btnMpLimpar.addEventListener('click', limparFormMp);
 if (btnMpSalvar) btnMpSalvar.addEventListener('click', salvarMp);
 
 // =========================
-// CONSULTA ESTOQUE (usa matérias-primas)
+// CONSULTA ESTOQUE
 // =========================
 const consultaEstoqueLista = document.getElementById('consulta-estoque-lista');
 
@@ -638,7 +601,7 @@ if (btnFornLimpar) btnFornLimpar.addEventListener('click', limparFormForn);
 if (btnFornSalvar) btnFornSalvar.addEventListener('click', salvarFornecedor);
 
 // =========================
-// PRODUTOS (com matérias-primas)
+// PRODUTOS (com MPs)
 // =========================
 const btnNovoProdMpAdd = document.getElementById('cad-prod-mp-add');
 const cadProdDesc = document.getElementById('cad-prod-desc');
@@ -667,7 +630,6 @@ function resetProdutoForm() {
   adicionarLinhaMpProduto();
 }
 
-// Preenche options de uma linha de MP
 function preencherOptionsMpProduto(selectEl) {
   if (!selectEl) return;
 
@@ -921,7 +883,7 @@ if (cadProdSalvar) {
       alert('Não foi possível salvar o produto.');
     }
   });
-}
+});
 
 // =========================
 // NOVO PEDIDO
@@ -944,7 +906,7 @@ const btnPedidoSalvar = document.getElementById('btn-pedido-salvar');
 
 let linhasPedido = []; // { rowEl, produtoInput, produtoSugestoes, qtdInput, totalVendaEl, totalCustoEl, produtoId, precoUnit, custoUnit }
 
-// autocomplete de clientes (novo pedido) – listener único
+// autocomplete de clientes (novo pedido)
 function atualizarSugestoesClientesPedido() {
   if (sugestoesClientesIniciadas) return;
   if (!pedidoClienteInput || !pedidoClienteSugestoes) return;
@@ -1311,7 +1273,7 @@ function renderListaStatusPedidos() {
 }
 
 // =========================
-// FINANÇAS - EXIBIR BLOCOS E SALVAR
+// FINANÇAS - EXIBIR BLOCOS
 // =========================
 const lancTipo = document.getElementById('lanc-tipo');
 const blocoSaidaInv = document.getElementById('bloco-saida-investimento');
@@ -1600,7 +1562,7 @@ if (agendaRegLimpar) agendaRegLimpar.addEventListener('click', limparAgendaRegis
 if (agendaRegSalvar) agendaRegSalvar.addEventListener('click', salvarAgendaRegistro);
 
 // =========================
-– VENDAS - RESUMO SIMPLES
+// VENDAS - RESUMO SIMPLES
 // =========================
 const vendasResumoQtde = document.getElementById('vendas-resumo-qtde');
 const vendasResumoTotal = document.getElementById('vendas-resumo-total');
@@ -1671,7 +1633,7 @@ if (btnAddForn && cadFornNome) {
 // INIT GERAL
 // =========================
 function init() {
-  // listeners
+  // listeners Firestore
   startClientesListener();
   startMateriasPrimaListener();
   startFornecedoresListener();
@@ -1680,15 +1642,15 @@ function init() {
   startAgendaListener();
   startLancamentosListener();
 
-  // sug. clientes no novo pedido
+  // autocomplete
   atualizarSugestoesClientesPedido();
   atualizarSugestoesPedidosFinancas();
   atualizarSugestoesPedidosAgenda();
 
-  // entrar direto na home
+  // entra direto na HOME, ignorando login
   showView('home');
 
-  // inicializa novo pedido com uma linha
+  // novo pedido
   limparNovoPedido();
 
   // agenda
