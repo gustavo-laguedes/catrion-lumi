@@ -117,6 +117,11 @@ let pedidos = [];
 let agendaDocs = [];
 let lancamentos = [];
 
+// flags para não criar listeners duplicados
+let sugestoesClientesIniciadas = false;
+let sugestoesPedidosFinancasIniciadas = false;
+let sugestoesPedidosAgendaIniciadas = false;
+
 // =========================
 // LISTENERS FIRESTORE
 // =========================
@@ -128,7 +133,7 @@ function startClientesListener() {
       ...d.data()
     }));
     renderListaClientes();
-    atualizarSugestoesClientesPedido();
+    // autocomplete de cliente usa o array global, não precisa recriar listener
   });
 }
 
@@ -164,7 +169,6 @@ function startProdutosListener() {
       ...d.data()
     }));
     renderProdutosLista();
-    renderConsultaEstoque(); // pra listar produtos quando trocar aba
   });
 }
 
@@ -177,9 +181,8 @@ function startPedidosListener() {
     }));
     renderListaPedidos();
     renderListaStatusPedidos();
-    atualizarSugestoesPedidosFinancas();
-    atualizarSugestoesPedidosAgenda();
     atualizarResumoVendas();
+    // auto-completes de pedidos usam array global
   });
 }
 
@@ -537,114 +540,31 @@ if (btnMpLimpar) btnMpLimpar.addEventListener('click', limparFormMp);
 if (btnMpSalvar) btnMpSalvar.addEventListener('click', salvarMp);
 
 // =========================
-// CONSULTA ESTOQUE (MP x PRODUTOS + busca)
+// CONSULTA ESTOQUE (usa matérias-primas)
 // =========================
 const consultaEstoqueLista = document.getElementById('consulta-estoque-lista');
-const consultaEstoqueBusca = document.getElementById('consulta-estoque-busca');
-const btnConsultaMp = document.getElementById('btn-consulta-mp');
-const btnConsultaProd = document.getElementById('btn-consulta-prod');
-
-let consultaEstoqueTipo = 'mp'; // 'mp' ou 'prod'
-
-function getTextoBuscaEstoque() {
-  return (consultaEstoqueBusca?.value || '').toLowerCase();
-}
 
 function renderConsultaEstoque() {
   if (!consultaEstoqueLista) return;
 
-  const busca = getTextoBuscaEstoque();
-
-  let listaBase = [];
-  if (consultaEstoqueTipo === 'mp') {
-    listaBase = [...(materiasPrima || [])];
-  } else {
-    listaBase = [...(produtos || [])];
-  }
-
-  if (!listaBase.length) {
-    consultaEstoqueLista.innerHTML = '<p class="item-meta">Nenhum registro cadastrado ainda.</p>';
+  if (!materiasPrima.length) {
+    consultaEstoqueLista.innerHTML = '<p class="item-meta">Nenhuma matéria-prima cadastrada ainda.</p>';
     return;
   }
 
-  if (busca) {
-    listaBase = listaBase.filter(item => {
-      const texto = (consultaEstoqueTipo === 'mp'
-        ? (item.descricao || '')
-        : (item.nome || '')
-      ).toLowerCase();
-      return texto.includes(busca);
-    });
-  }
-
-  if (!listaBase.length) {
-    consultaEstoqueLista.innerHTML = '<p class="item-meta">Nenhum resultado para esse filtro.</p>';
-    return;
-  }
-
-  const html = listaBase.map(item => {
-    if (consultaEstoqueTipo === 'mp') {
-      return `
-        <div class="item-card">
-          <div class="item-row">
-            <span class="item-title">${item.descricao || '(sem descrição)'}</span>
-            <span class="badge badge-venda">R$ ${Number(item.custo || 0).toFixed(2)}</span>
-          </div>
-          <div class="item-meta">
-            Unid: ${item.unid || ''} • Fornecedor: ${item.fornecedorTexto || ''}
-          </div>
-        </div>
-      `;
-    } else {
-      const custo = Number(item.custo || 0);
-      const preco = Number(item.preco || 0);
-      let perc = 0;
-      if (custo > 0 && preco > 0) {
-        perc = ((preco - custo) / custo) * 100;
-      }
-      return `
-        <div class="item-card">
-          <div class="item-row">
-            <span class="item-title">${item.nome || '(sem nome)'}</span>
-            <span class="badge badge-venda">R$ ${preco.toFixed(2)}</span>
-          </div>
-          <div class="item-meta">
-            Unid: ${item.unid || ''} • Custo: R$ ${custo.toFixed(2)} • Lucro: ${perc.toFixed(1)}%
-          </div>
-        </div>
-      `;
-    }
-  }).join('');
+  const html = materiasPrima.map(mp => `
+    <div class="item-card">
+      <div class="item-row">
+        <span class="item-title">${mp.descricao || '(sem descrição)'}</span>
+        <span class="badge badge-venda">R$ ${Number(mp.custo || 0).toFixed(2)}</span>
+      </div>
+      <div class="item-meta">
+        Unid: ${mp.unid || ''} • Fornecedor: ${mp.fornecedorTexto || ''}
+      </div>
+    </div>
+  `).join('');
 
   consultaEstoqueLista.innerHTML = html;
-
-  if (btnConsultaMp && btnConsultaProd) {
-    if (consultaEstoqueTipo === 'mp') {
-      btnConsultaMp.classList.add('tab-active');
-      btnConsultaProd.classList.remove('tab-active');
-    } else {
-      btnConsultaProd.classList.add('tab-active');
-      btnConsultaMp.classList.remove('tab-active');
-    }
-  }
-}
-
-if (btnConsultaMp) {
-  btnConsultaMp.addEventListener('click', () => {
-    consultaEstoqueTipo = 'mp';
-    renderConsultaEstoque();
-  });
-}
-if (btnConsultaProd) {
-  btnConsultaProd.addEventListener('click', () => {
-    consultaEstoqueTipo = 'prod';
-    renderConsultaEstoque();
-  });
-}
-if (consultaEstoqueBusca) {
-  consultaEstoqueBusca.addEventListener('input', () => {
-    renderConsultaEstoque();
-  });
 }
 
 // =========================
@@ -1024,7 +944,9 @@ const btnPedidoSalvar = document.getElementById('btn-pedido-salvar');
 
 let linhasPedido = []; // { rowEl, produtoInput, produtoSugestoes, qtdInput, totalVendaEl, totalCustoEl, produtoId, precoUnit, custoUnit }
 
+// autocomplete de clientes (novo pedido) – listener único
 function atualizarSugestoesClientesPedido() {
+  if (sugestoesClientesIniciadas) return;
   if (!pedidoClienteInput || !pedidoClienteSugestoes) return;
 
   pedidoClienteInput.addEventListener('input', () => {
@@ -1063,6 +985,8 @@ function atualizarSugestoesClientesPedido() {
 
     pedidoClienteSugestoes.style.display = filtrados.length ? 'block' : 'none';
   });
+
+  sugestoesClientesIniciadas = true;
 }
 
 function adicionarLinhaPedido() {
@@ -1106,8 +1030,8 @@ function adicionarLinhaPedido() {
   const produtoInput = row.querySelector('.pedido-prod-busca');
   const produtoSugestoes = row.querySelector('.pedido-prod-sugestoes');
   const qtdInput = row.querySelector('.pedido-prod-qtd');
-  const totalVendaElLocal = row.querySelector('.pedido-prod-total-venda');
-  const totalCustoElLocal = row.querySelector('.pedido-prod-total-custo');
+  const totalVendaEl = row.querySelector('.pedido-prod-total-venda');
+  const totalCustoEl = row.querySelector('.pedido-prod-total-custo');
   const btnRemover = row.querySelector('.pedido-prod-remover');
 
   const linha = {
@@ -1115,8 +1039,8 @@ function adicionarLinhaPedido() {
     produtoInput,
     produtoSugestoes,
     qtdInput,
-    totalVendaEl: totalVendaElLocal,
-    totalCustoEl: totalCustoElLocal,
+    totalVendaEl,
+    totalCustoEl,
     produtoId: null,
     precoUnit: 0,
     custoUnit: 0
@@ -1279,7 +1203,7 @@ async function salvarNovoPedido() {
       totalVenda,
       totalCusto,
       status: 'aguardando',
-      statusPagamento: 'a_receber',
+      statusPagamento: 'a receber',
       createdAt: serverTimestamp()
     });
     limparNovoPedido();
@@ -1300,44 +1224,33 @@ if (btnPedidoSalvar) btnPedidoSalvar.addEventListener('click', salvarNovoPedido)
 const listaPedidosEl = document.getElementById('lista-pedidos');
 const listaStatusPedidosEl = document.getElementById('lista-status-pedidos');
 
-function formatarStatusPagamento(st) {
-  if (!st || st === 'a_receber') return 'A receber';
-  if (st === 'pago') return 'Pago';
-  if (st === 'pago_parcial') return 'Pago parcialmente';
-  if (st === 'cancelado') return 'Cancelado';
-  return st;
-}
-
 function renderListaPedidos() {
-  if (!listaPedidosEl) return;
+  if (listaPedidosEl) {
+    if (!pedidos.length) {
+      listaPedidosEl.innerHTML = '<p class="item-meta">Nenhum pedido cadastrado ainda.</p>';
+      return;
+    }
 
-  if (!pedidos.length) {
-    listaPedidosEl.innerHTML = '<p class="item-meta">Nenhum pedido cadastrado ainda.</p>';
-    return;
+    const ordenados = [...pedidos].sort((a,b) => {
+      const ta = a.createdAt?.seconds || 0;
+      const tb = b.createdAt?.seconds || 0;
+      return tb - ta; // mais recentes primeiro
+    });
+
+    const html = ordenados.map(p => `
+      <div class="item-card">
+        <div class="item-row">
+          <span class="item-title">${p.clienteNome || '(sem cliente)'}</span>
+          <span class="badge badge-pendente">${p.status || '—'}</span>
+        </div>
+        <div class="item-meta">
+          Itens: ${(p.itens || []).length} • Total: R$ ${Number(p.totalVenda || 0).toFixed(2)}
+        </div>
+      </div>
+    `).join('');
+
+    listaPedidosEl.innerHTML = html;
   }
-
-  const ordenados = [...pedidos].sort((a, b) => {
-    const ta = a.createdAt?.seconds || 0;
-    const tb = b.createdAt?.seconds || 0;
-    return tb - ta; // mais recentes primeiro
-  });
-
-  const html = ordenados.map(p => `
-    <div class="item-card">
-      <div class="item-row">
-        <span class="item-title">${p.clienteNome || '(sem cliente)'}</span>
-        <span class="badge badge-pendente">${p.status || 'aguardando'}</span>
-      </div>
-      <div class="item-meta">
-        Itens: ${(p.itens || []).length} • Total: R$ ${Number(p.totalVenda || 0).toFixed(2)}
-      </div>
-      <div class="item-meta">
-        Pagamento: ${formatarStatusPagamento(p.statusPagamento)}
-      </div>
-    </div>
-  `).join('');
-
-  listaPedidosEl.innerHTML = html;
 }
 
 async function atualizarStatusPedido(pedidoId, novoStatus) {
@@ -1348,17 +1261,6 @@ async function atualizarStatusPedido(pedidoId, novoStatus) {
   } catch (err) {
     console.error('Erro ao atualizar status do pedido:', err);
     alert('Não foi possível atualizar o status.');
-  }
-}
-
-async function atualizarStatusPagamentoPedido(pedidoId, novoStatusPag) {
-  try {
-    await updateDoc(doc(db, 'pedidos', pedidoId), {
-      statusPagamento: novoStatusPag
-    });
-  } catch (err) {
-    console.error('Erro ao atualizar status de pagamento:', err);
-    alert('Não foi possível atualizar o status de pagamento.');
   }
 }
 
@@ -1384,25 +1286,14 @@ function renderListaStatusPedidos() {
       <div class="item-meta">
         Total: R$ ${Number(p.totalVenda || 0).toFixed(2)}
       </div>
-
       <div class="form-group" style="margin-top:6px;">
-        <label>Status do pedido</label>
+        <label>Status</label>
         <select data-status-pedido="${p.id}">
           <option value="aguardando" ${p.status === 'aguardando' ? 'selected' : ''}>Aguardando</option>
           <option value="andamento" ${p.status === 'andamento' ? 'selected' : ''}>Em andamento</option>
           <option value="aguardando_pagamento" ${p.status === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
           <option value="finalizado" ${p.status === 'finalizado' ? 'selected' : ''}>Finalizado</option>
           <option value="cancelado" ${p.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
-        </select>
-      </div>
-
-      <div class="form-group" style="margin-top:6px;">
-        <label>Status do pagamento</label>
-        <select data-status-pagamento="${p.id}">
-          <option value="a_receber" ${!p.statusPagamento || p.statusPagamento === 'a_receber' ? 'selected' : ''}>A receber</option>
-          <option value="pago_parcial" ${p.statusPagamento === 'pago_parcial' ? 'selected' : ''}>Pago parcialmente</option>
-          <option value="pago" ${p.statusPagamento === 'pago' ? 'selected' : ''}>Pago</option>
-          <option value="cancelado" ${p.statusPagamento === 'cancelado' ? 'selected' : ''}>Cancelado</option>
         </select>
       </div>
     </div>
@@ -1415,14 +1306,6 @@ function renderListaStatusPedidos() {
       const id = sel.dataset.statusPedido;
       const novoStatus = sel.value;
       atualizarStatusPedido(id, novoStatus);
-    });
-  });
-
-  listaStatusPedidosEl.querySelectorAll('select[data-status-pagamento]').forEach(sel => {
-    sel.addEventListener('change', () => {
-      const id = sel.dataset.statusPagamento;
-      const novoStatusPag = sel.value;
-      atualizarStatusPagamentoPedido(id, novoStatusPag);
     });
   });
 }
@@ -1473,6 +1356,7 @@ const lancVendaDescricao = document.getElementById('lanc-venda-descricao');
 const lancVendaValor = document.getElementById('lanc-venda-valor');
 
 function atualizarSugestoesPedidosFinancas() {
+  if (sugestoesPedidosFinancasIniciadas) return;
   if (!lancVendaPedidoInput || !lancVendaPedidoSug) return;
 
   lancVendaPedidoInput.addEventListener('input', () => {
@@ -1514,6 +1398,8 @@ function atualizarSugestoesPedidosFinancas() {
 
     lancVendaPedidoSug.style.display = filtrados.length ? 'block' : 'none';
   });
+
+  sugestoesPedidosFinancasIniciadas = true;
 }
 
 function limparFinancas() {
@@ -1613,6 +1499,7 @@ const agendaRegLimpar = document.getElementById('agenda-reg-limpar');
 const agendaRegSalvar = document.getElementById('agenda-reg-salvar');
 
 function atualizarSugestoesPedidosAgenda() {
+  if (sugestoesPedidosAgendaIniciadas) return;
   if (!agendaPedidoInput || !agendaPedidoSug) return;
 
   agendaPedidoInput.addEventListener('input', () => {
@@ -1643,6 +1530,8 @@ function atualizarSugestoesPedidosAgenda() {
 
     agendaPedidoSug.style.display = filtrados.length ? 'block' : 'none';
   });
+
+  sugestoesPedidosAgendaIniciadas = true;
 }
 
 function atualizarVisibilidadeAgendaPedido() {
@@ -1711,7 +1600,7 @@ if (agendaRegLimpar) agendaRegLimpar.addEventListener('click', limparAgendaRegis
 if (agendaRegSalvar) agendaRegSalvar.addEventListener('click', salvarAgendaRegistro);
 
 // =========================
-// VENDAS - RESUMO SIMPLES
+– VENDAS - RESUMO SIMPLES
 // =========================
 const vendasResumoQtde = document.getElementById('vendas-resumo-qtde');
 const vendasResumoTotal = document.getElementById('vendas-resumo-total');
@@ -1730,32 +1619,52 @@ function atualizarResumoVendas() {
 }
 
 // =========================
-// ATALHO PROS FABs DE CADASTRO (se você tiver colocado no HTML)
+// BOTÕES "+" DOS CADASTROS
 // =========================
-function focarNoElemento(el) {
-  if (!el) return;
-  const sec = el.closest('.home-section') || el;
-  const top = sec.getBoundingClientRect().top + window.scrollY - 80;
-  window.scrollTo({ top, behavior: 'smooth' });
-  el.focus();
+
+function abrirCadastroELimpar(inputEl, limparFn) {
+  if (typeof limparFn === 'function') limparFn();
+
+  if (inputEl) {
+    const sec = inputEl.closest('.home-section') || inputEl;
+    if (sec) {
+      const top = sec.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+    inputEl.focus();
+  }
 }
 
-// IDs sugeridos pros botões flutuantes: fab-add-cliente / fab-add-produto / fab-add-mp / fab-add-fornecedor
-const fabAddCliente = document.getElementById('fab-add-cliente');
-if (fabAddCliente && cadCliNome) {
-  fabAddCliente.addEventListener('click', () => focarNoElemento(cadCliNome));
+// CLIENTES – botão +
+const btnAddCliente = document.getElementById('btn-add-cliente');
+if (btnAddCliente && cadCliNome) {
+  btnAddCliente.addEventListener('click', () => {
+    abrirCadastroELimpar(cadCliNome, limparFormCliente);
+  });
 }
-const fabAddProduto = document.getElementById('fab-add-produto');
-if (fabAddProduto && cadProdDesc) {
-  fabAddProduto.addEventListener('click', () => focarNoElemento(cadProdDesc));
+
+// PRODUTOS – botão +
+const btnAddProduto = document.getElementById('btn-add-produto');
+if (btnAddProduto && cadProdDesc) {
+  btnAddProduto.addEventListener('click', () => {
+    abrirCadastroELimpar(cadProdDesc, resetProdutoForm);
+  });
 }
-const fabAddMp = document.getElementById('fab-add-mp');
-if (fabAddMp && cadMpDesc) {
-  fabAddMp.addEventListener('click', () => focarNoElemento(cadMpDesc));
+
+// MATÉRIA-PRIMA – botão +
+const btnAddMp = document.getElementById('btn-add-mp');
+if (btnAddMp && cadMpDesc) {
+  btnAddMp.addEventListener('click', () => {
+    abrirCadastroELimpar(cadMpDesc, limparFormMp);
+  });
 }
-const fabAddForn = document.getElementById('fab-add-fornecedor');
-if (fabAddForn && cadFornNome) {
-  fabAddForn.addEventListener('click', () => focarNoElemento(cadFornNome));
+
+// FORNECEDORES – botão +
+const btnAddForn = document.getElementById('btn-add-fornecedor');
+if (btnAddForn && cadFornNome) {
+  btnAddForn.addEventListener('click', () => {
+    abrirCadastroELimpar(cadFornNome, limparFormForn);
+  });
 }
 
 // =========================
@@ -1776,16 +1685,16 @@ function init() {
   atualizarSugestoesPedidosFinancas();
   atualizarSugestoesPedidosAgenda();
 
-  // entrar direto na home (login desabilitado por enquanto)
+  // entrar direto na home
   showView('home');
 
   // inicializa novo pedido com uma linha
   limparNovoPedido();
 
-  // render agenda inicial
+  // agenda
   renderAgenda();
 
-  // render estoque inicial
+  // estoque
   renderConsultaEstoque();
 }
 
