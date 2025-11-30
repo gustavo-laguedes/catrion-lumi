@@ -1,1381 +1,1087 @@
-// app.js - Catrion Lumi (sem login, usando localStorage)
-// Tudo aqui é modular, mas sem import de firebase por enquanto.
+// app.js - Versão desktop focada em localStorage (sem login / Firebase)
 
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+(function () {
+  // ----------------- UTIL -----------------
+  const DB_KEYS = {
+    clientes: 'lumi_clientes',
+    produtos: 'lumi_produtos',
+    mp: 'lumi_mp',
+    fornecedores: 'lumi_fornecedores',
+    pedidos: 'lumi_pedidos',
+    lancamentos: 'lumi_lancamentos',
+    agenda: 'lumi_agenda',
+    negocio: 'lumi_negocio'
+  };
 
-const STORAGE = {
-  clientes: 'lumi_clientes',
-  mp: 'lumi_mp',
-  fornecedores: 'lumi_fornecedores',
-  produtos: 'lumi_produtos',
-  pedidos: 'lumi_pedidos',
-  lancamentos: 'lumi_lancamentos',
-  agenda: 'lumi_agenda'
-};
-
-function loadData(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.error('Erro ao ler localStorage', key, e);
-    return [];
-  }
-}
-
-function saveData(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (e) {
-    console.error('Erro ao salvar localStorage', key, e);
-  }
-}
-
-function formatMoney(valor) {
-  const n = Number(valor) || 0;
-  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-function formatPercent(p) {
-  const n = Number(p) || 0;
-  return `${n.toFixed(1).replace('.', ',')}%`;
-}
-
-function formatDateLabel(dateStr) {
-  if (!dateStr) return '';
-  const [y, m, d] = dateStr.split('-').map(Number);
-  if (!y || !m || !d) return dateStr;
-  return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
-}
-
-// SPA / Navegação
-function showView(viewName) {
-  $$('.view').forEach((v) => v.classList.remove('active'));
-  const target = document.querySelector(`.view[data-view="${viewName}"]`);
-  if (target) {
-    target.classList.add('active');
+  function loadArray(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    } catch {
+      return [];
+    }
   }
 
-  // bottom nav active
-  $$('.bottom-nav .nav-item').forEach((btn) => {
-    const targetView = btn.dataset.targetView;
-    btn.classList.toggle('active', targetView === viewName);
-  });
-}
+  function saveArray(key, arr) {
+    localStorage.setItem(key, JSON.stringify(arr));
+  }
 
-function initNavigation() {
-  // clicks em qualquer data-target-view
-  $$('[data-target-view]').forEach((el) => {
-    el.addEventListener('click', () => {
-      const v = el.dataset.targetView;
-      if (v) showView(v);
+  function loadObject(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  function saveObject(key, obj) {
+    localStorage.setItem(key, JSON.stringify(obj));
+  }
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function parseNumber(val) {
+    if (val == null) return 0;
+    return Number(String(val).replace(/\./g, '').replace(',', '.')) || 0;
+  }
+
+  function fmtMoeda(n) {
+    const num = Number(n) || 0;
+    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function fmtDataISO(dt) {
+    if (!dt) return '';
+    const d = new Date(dt);
+    if (Number.isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  function $(sel) {
+    return document.querySelector(sel);
+  }
+  function $all(sel) {
+    return Array.from(document.querySelectorAll(sel));
+  }
+
+  // ----------------- NAVEGAÇÃO ENTRE VIEWS -----------------
+  function showView(viewName) {
+    $all('.view').forEach(v => {
+      if (v.dataset.view === viewName) {
+        v.classList.add('active');
+      } else {
+        v.classList.remove('active');
+      }
     });
-  });
 
-  // começa sempre na home
-  showView('home');
-}
+    // atualizar bottom nav
+    $all('.bottom-nav .nav-item').forEach(btn => {
+      if (btn.dataset.targetView === viewName) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
 
-// Estado global simples em memória
-let clientes = [];
-let mpList = [];
-let fornecedores = [];
-let produtos = [];
-let pedidos = [];
-let lancamentos = [];
-let agendaItens = [];
-
-// ---------- CADASTRO DE CLIENTES ----------
-function renderClientes() {
-  const container = $('#lista-clientes-cad');
-  if (!container) return;
-
-  if (!clientes.length) {
-    container.innerHTML = `<div class="item-meta">Nenhum cliente cadastrado ainda.</div>`;
-    return;
-  }
-
-  const ordenados = [...clientes].sort((a, b) =>
-    a.nome.localeCompare(b.nome, 'pt-BR')
-  );
-
-  container.innerHTML = ordenados
-    .map(
-      (c) => `
-      <div class="item-card">
-        <div class="item-row">
-          <span class="item-title">${c.nome}</span>
-          <span class="item-meta">${c.tel || ''}</span>
-        </div>
-        <div class="item-meta">
-          ${[c.end, c.cid, c.est].filter(Boolean).join(' - ')}
-        </div>
-      </div>
-    `
-    )
-    .join('');
-}
-
-function initClientes() {
-  const fabAdd = $('#fab-add-cliente');
-  const sectionLista = $('#clientes-list-section');
-  const sectionForm = $('#clientes-form-section');
-  const btnVoltar = $('#btn-clientes-voltar-lista');
-  const btnLimpar = $('#cad-cliente-limpar');
-  const btnSalvar = $('#cad-cliente-salvar');
-
-  if (!fabAdd || !sectionLista || !sectionForm) return;
-
-  function limparFormCliente() {
-    $('#cad-cliente-nome').value = '';
-    $('#cad-cliente-tel').value = '';
-    $('#cad-cliente-end').value = '';
-    $('#cad-cliente-cid').value = '';
-    $('#cad-cliente-est').value = '';
-  }
-
-  fabAdd.addEventListener('click', () => {
-    sectionLista.style.display = 'none';
-    sectionForm.style.display = 'block';
-    limparFormCliente();
-  });
-
-  btnVoltar.addEventListener('click', () => {
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
-
-  btnLimpar.addEventListener('click', limparFormCliente);
-
-  btnSalvar.addEventListener('click', () => {
-    const nome = $('#cad-cliente-nome').value.trim();
-    if (!nome) {
-      alert('Informe o nome do cliente.');
-      return;
+    // atualizar header engrenagem para ir pra config
+    if (viewName === 'config') {
+      $('#app-header')?.classList.add('in-config');
+    } else {
+      $('#app-header')?.classList.remove('in-config');
     }
 
-    const novo = {
-      id: Date.now(),
-      nome,
-      tel: $('#cad-cliente-tel').value.trim(),
-      end: $('#cad-cliente-end').value.trim(),
-      cid: $('#cad-cliente-cid').value.trim(),
-      est: $('#cad-cliente-est').value.trim()
-    };
+    // views que precisam recarregar lista quando abertas
+    if (viewName === 'cad-clientes') renderClientes();
+    if (viewName === 'cad-mp') renderMp();
+    if (viewName === 'cad-fornecedores') renderFornecedores();
+    if (viewName === 'cad-produtos') renderProdutos();
+    if (viewName === 'consulta-estoque') renderConsultaEstoque();
+    if (viewName === 'pedidos') renderPedidosLista();
+    if (viewName === 'status-pedidos') renderStatusPedidos();
+    if (viewName === 'vendas') renderResumoVendas();
+    if (viewName === 'consulta-financas') renderResumoFinancas();
+    if (viewName === 'agenda') buildAgendaGrid();
+  }
 
-    clientes.push(novo);
-    saveData(STORAGE.clientes, clientes);
+  function initNavigation() {
+    // tiles da home
+    $all('[data-target-view]').forEach(el => {
+      el.addEventListener('click', () => {
+        const target = el.dataset.targetView;
+        if (target) showView(target);
+      });
+    });
+
+    // engrenagem
+    const gear = document.querySelector('.header-gear');
+    if (gear) {
+      gear.addEventListener('click', () => showView('config'));
+    }
+  }
+
+  // ----------------- CONFIG NEGÓCIO -----------------
+  function initConfigNegocio() {
+    const nomeInput = $('#config-nome-negocio');
+    const logoEmpresaTop = $('#logo-empresa-top');
+    const btnSalvar = $('#config-salvar-negocio');
+
+    const dados = loadObject(DB_KEYS.negocio);
+    if (dados.nome && nomeInput) nomeInput.value = dados.nome;
+    if (dados.nome && logoEmpresaTop) logoEmpresaTop.textContent = dados.nome;
+
+    if (btnSalvar) {
+      btnSalvar.addEventListener('click', () => {
+        const nome = nomeInput.value.trim();
+        const obj = { ...dados, nome };
+        saveObject(DB_KEYS.negocio, obj);
+        if (logoEmpresaTop) logoEmpresaTop.textContent = nome || 'Logo da empresa (upload)';
+        alert('Dados do negócio salvos localmente.');
+      });
+    }
+  }
+
+  // ----------------- CLIENTES -----------------
+  function renderClientes() {
+    const container = $('#lista-clientes-cad');
+    if (!container) return;
+    const clientes = loadArray(DB_KEYS.clientes)
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    if (!clientes.length) {
+      container.innerHTML = '<div class="item-meta">Nenhum cliente cadastrado ainda.</div>';
+      return;
+    }
+    container.innerHTML = clientes.map(cl => `
+      <div class="item-card">
+        <div class="item-row">
+          <span class="item-title">${cl.nome}</span>
+        </div>
+        <div class="item-meta">
+          ${cl.tel ? `Tel: ${cl.tel} — ` : ''}${cl.cidade || ''}${cl.estado ? ' / ' + cl.estado : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function initClientes() {
+    const listSection = $('#clientes-list-section');
+    const formSection = $('#clientes-form-section');
+    const fab = $('#fab-add-cliente');
+    const btnVoltar = $('#btn-clientes-voltar-lista');
+    const btnSalvar = $('#cad-cliente-salvar');
+    const btnLimpar = $('#cad-cliente-limpar');
+
+    function abrirForm() {
+      if (listSection) listSection.style.display = 'none';
+      if (formSection) formSection.style.display = 'block';
+      $('#cad-cliente-nome').value = '';
+      $('#cad-cliente-tel').value = '';
+      $('#cad-cliente-end').value = '';
+      $('#cad-cliente-cid').value = '';
+      $('#cad-cliente-est').value = '';
+    }
+
+    function voltarLista() {
+      if (formSection) formSection.style.display = 'none';
+      if (listSection) listSection.style.display = 'block';
+      renderClientes();
+    }
+
+    fab?.addEventListener('click', abrirForm);
+    btnVoltar?.addEventListener('click', voltarLista);
+    btnLimpar?.addEventListener('click', () => abrirForm());
+
+    btnSalvar?.addEventListener('click', () => {
+      const nome = $('#cad-cliente-nome').value.trim();
+      if (!nome) {
+        alert('Informe o nome do cliente.');
+        return;
+      }
+      const tel = $('#cad-cliente-tel').value.trim();
+      const end = $('#cad-cliente-end').value.trim();
+      const cid = $('#cad-cliente-cid').value.trim();
+      const est = $('#cad-cliente-est').value.trim();
+
+      const clientes = loadArray(DB_KEYS.clientes);
+      clientes.push({
+        id: uid(),
+        nome,
+        tel,
+        endereco: end,
+        cidade: cid,
+        estado: est
+      });
+      saveArray(DB_KEYS.clientes, clientes);
+      voltarLista();
+    });
+
     renderClientes();
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
-
-  renderClientes();
-}
-
-// ---------- CADASTRO DE MATÉRIA-PRIMA ----------
-function renderMp() {
-  const container = $('#lista-mp-cad');
-  if (!container) return;
-
-  if (!mpList.length) {
-    container.innerHTML = `<div class="item-meta">Nenhuma matéria-prima cadastrada.</div>`;
-    return;
   }
 
-  const ordenados = [...mpList].sort((a, b) =>
-    a.desc.localeCompare(b.desc, 'pt-BR')
-  );
-
-  container.innerHTML = ordenados
-    .map(
-      (m) => `
-      <div class="item-card">
-        <div class="item-row">
-          <span class="item-title">${m.desc}</span>
-          <span class="item-meta">${m.unid || ''}</span>
-        </div>
-        <div class="item-meta">
-          Custo: ${formatMoney(m.custo)} ${m.unid ? ' / ' + m.unid : ''}
-          ${m.forn ? ' • Fornecedor: ' + m.forn : ''}
-        </div>
-      </div>
-    `
-    )
-    .join('');
-}
-
-function initMp() {
-  const fabAdd = $('#fab-add-mp');
-  const sectionLista = $('#mp-list-section');
-  const sectionForm = $('#mp-form-section');
-  const btnVoltar = $('#btn-mp-voltar-lista');
-  const btnLimpar = $('#cad-mp-limpar');
-  const btnSalvar = $('#cad-mp-salvar');
-
-  if (!fabAdd || !sectionLista || !sectionForm) return;
-
-  function limparFormMp() {
-    $('#cad-mp-desc').value = '';
-    $('#cad-mp-unid').value = '';
-    $('#cad-mp-custo').value = '';
-    $('#cad-mp-forn').value = '';
-  }
-
-  fabAdd.addEventListener('click', () => {
-    sectionLista.style.display = 'none';
-    sectionForm.style.display = 'block';
-    limparFormMp();
-  });
-
-  btnVoltar.addEventListener('click', () => {
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
-
-  btnLimpar.addEventListener('click', limparFormMp);
-
-  btnSalvar.addEventListener('click', () => {
-    const desc = $('#cad-mp-desc').value.trim();
-    if (!desc) {
-      alert('Informe a descrição da matéria-prima.');
+  // ----------------- MATÉRIA-PRIMA -----------------
+  function renderMp() {
+    const container = $('#lista-mp-cad');
+    if (!container) return;
+    const mps = loadArray(DB_KEYS.mp)
+      .sort((a, b) => a.descricao.localeCompare(b.descricao, 'pt-BR'));
+    if (!mps.length) {
+      container.innerHTML = '<div class="item-meta">Nenhuma matéria-prima cadastrada.</div>';
       return;
     }
-
-    const custo = parseFloat($('#cad-mp-custo').value.replace(',', '.')) || 0;
-
-    const novo = {
-      id: Date.now(),
-      desc,
-      unid: $('#cad-mp-unid').value.trim(),
-      custo,
-      forn: $('#cad-mp-forn').value.trim()
-    };
-
-    mpList.push(novo);
-    saveData(STORAGE.mp, mpList);
-    renderMp();
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
-
-  renderMp();
-}
-
-// ---------- CADASTRO DE FORNECEDORES ----------
-function renderFornecedores() {
-  const container = $('#lista-forn-cad');
-  if (!container) return;
-
-  if (!fornecedores.length) {
-    container.innerHTML = `<div class="item-meta">Nenhum fornecedor cadastrado.</div>`;
-    return;
+    container.innerHTML = mps.map(mp => `
+      <div class="item-card">
+        <div class="item-row">
+          <span class="item-title">${mp.descricao}</span>
+          <span class="item-badge">${mp.unidade}</span>
+        </div>
+        <div class="item-meta">Custo: ${fmtMoeda(mp.custo || 0)}</div>
+        <div class="item-meta">Fornecedor: ${mp.fornecedor || '-'}</div>
+      </div>
+    `).join('');
   }
 
-  const ordenados = [...fornecedores].sort((a, b) =>
-    a.nome.localeCompare(b.nome, 'pt-BR')
-  );
+  function initMp() {
+    const listSection = $('#mp-list-section');
+    const formSection = $('#mp-form-section');
+    const fab = $('#fab-add-mp');
+    const btnVoltar = $('#btn-mp-voltar-lista');
+    const btnSalvar = $('#cad-mp-salvar');
+    const btnLimpar = $('#cad-mp-limpar');
 
-  container.innerHTML = ordenados
-    .map(
-      (f) => `
+    function abrirForm() {
+      if (listSection) listSection.style.display = 'none';
+      if (formSection) formSection.style.display = 'block';
+      $('#cad-mp-desc').value = '';
+      $('#cad-mp-unid').value = '';
+      $('#cad-mp-custo').value = '';
+      $('#cad-mp-forn').value = '';
+    }
+
+    function voltarLista() {
+      if (formSection) formSection.style.display = 'none';
+      if (listSection) listSection.style.display = 'block';
+      renderMp();
+    }
+
+    fab?.addEventListener('click', abrirForm);
+    btnVoltar?.addEventListener('click', voltarLista);
+    btnLimpar?.addEventListener('click', () => abrirForm());
+
+    btnSalvar?.addEventListener('click', () => {
+      const desc = $('#cad-mp-desc').value.trim();
+      if (!desc) {
+        alert('Informe a descrição da matéria-prima.');
+        return;
+      }
+      const un = $('#cad-mp-unid').value.trim();
+      const custo = parseNumber($('#cad-mp-custo').value);
+      const forn = $('#cad-mp-forn').value.trim();
+
+      const mps = loadArray(DB_KEYS.mp);
+      mps.push({
+        id: uid(),
+        descricao: desc,
+        unidade: un,
+        custo,
+        fornecedor: forn
+      });
+      saveArray(DB_KEYS.mp, mps);
+      voltarLista();
+    });
+
+    renderMp();
+  }
+
+  // ----------------- FORNECEDORES -----------------
+  function renderFornecedores() {
+    const container = $('#lista-forn-cad');
+    if (!container) return;
+    const lista = loadArray(DB_KEYS.fornecedores)
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    if (!lista.length) {
+      container.innerHTML = '<div class="item-meta">Nenhum fornecedor cadastrado.</div>';
+      return;
+    }
+    container.innerHTML = lista.map(f => `
       <div class="item-card">
         <div class="item-row">
           <span class="item-title">${f.nome}</span>
-          <span class="item-meta">${f.contato || ''}</span>
         </div>
         <div class="item-meta">
-          ${f.notas || ''}
+          ${f.contato || ''} ${f.notas ? ' — ' + f.notas : ''}
         </div>
       </div>
-    `
-    )
-    .join('');
-}
-
-function initFornecedores() {
-  const fabAdd = $('#fab-add-forn');
-  const sectionLista = $('#forn-list-section');
-  const sectionForm = $('#forn-form-section');
-  const btnVoltar = $('#btn-forn-voltar-lista');
-  const btnLimpar = $('#cad-forn-limpar');
-  const btnSalvar = $('#cad-forn-salvar');
-
-  if (!fabAdd || !sectionLista || !sectionForm) return;
-
-  function limparFormForn() {
-    $('#cad-forn-nome').value = '';
-    $('#cad-forn-contato').value = '';
-    $('#cad-forn-notas').value = '';
+    `).join('');
   }
 
-  fabAdd.addEventListener('click', () => {
-    sectionLista.style.display = 'none';
-    sectionForm.style.display = 'block';
-    limparFormForn();
-  });
+  function initFornecedores() {
+    const listSection = $('#forn-list-section');
+    const formSection = $('#forn-form-section');
+    const fab = $('#fab-add-forn');
+    const btnVoltar = $('#btn-forn-voltar-lista');
+    const btnSalvar = $('#cad-forn-salvar');
+    const btnLimpar = $('#cad-forn-limpar');
 
-  btnVoltar.addEventListener('click', () => {
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
-
-  btnLimpar.addEventListener('click', limparFormForn);
-
-  btnSalvar.addEventListener('click', () => {
-    const nome = $('#cad-forn-nome').value.trim();
-    if (!nome) {
-      alert('Informe o nome do fornecedor.');
-      return;
+    function abrirForm() {
+      if (listSection) listSection.style.display = 'none';
+      if (formSection) formSection.style.display = 'block';
+      $('#cad-forn-nome').value = '';
+      $('#cad-forn-contato').value = '';
+      $('#cad-forn-notas').value = '';
     }
 
-    const novo = {
-      id: Date.now(),
-      nome,
-      contato: $('#cad-forn-contato').value.trim(),
-      notas: $('#cad-forn-notas').value.trim()
-    };
-
-    fornecedores.push(novo);
-    saveData(STORAGE.fornecedores, fornecedores);
-    renderFornecedores();
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
-
-  renderFornecedores();
-}
-
-// ---------- CADASTRO DE PRODUTOS ----------
-function calcularProdutoCustoELucro() {
-  const linhas = $$('#cad-prod-mp-container .prod-mp-line');
-  let somaCusto = 0;
-
-  linhas.forEach((linha) => {
-    const qtd = parseFloat(
-      linha.querySelector('.prod-mp-qtd').value.replace(',', '.')
-    ) || 0;
-    const custoUn = parseFloat(
-      linha.querySelector('.prod-mp-custo-un').value.replace(',', '.')
-    ) || 0;
-    const total = qtd * custoUn;
-    somaCusto += total;
-
-    const spanTotal = linha.querySelector('.prod-mp-total');
-    if (spanTotal) {
-      spanTotal.textContent = formatMoney(total);
+    function voltarLista() {
+      if (formSection) formSection.style.display = 'none';
+      if (listSection) listSection.style.display = 'block';
+      renderFornecedores();
     }
-  });
 
-  const inputCusto = $('#cad-prod-custo');
-  if (inputCusto) inputCusto.value = somaCusto.toFixed(2);
+    fab?.addEventListener('click', abrirForm);
+    btnVoltar?.addEventListener('click', voltarLista);
+    btnLimpar?.addEventListener('click', () => abrirForm());
 
-  const venda = parseFloat(
-    ($('#cad-prod-venda').value || '').toString().replace(',', '.')
-  ) || 0;
+    btnSalvar?.addEventListener('click', () => {
+      const nome = $('#cad-forn-nome').value.trim();
+      if (!nome) {
+        alert('Informe o nome do fornecedor.');
+        return;
+      }
+      const contato = $('#cad-forn-contato').value.trim();
+      const notas = $('#cad-forn-notas').value.trim();
 
-  const lucroDiv = $('#cad-prod-lucro');
-  if (lucroDiv) {
-    if (venda > 0) {
-      const perc = ((venda - somaCusto) / venda) * 100;
-      lucroDiv.textContent = formatPercent(perc);
-    } else {
-      lucroDiv.textContent = '0%';
-    }
-  }
-}
-
-function adicionarLinhaMpProduto(dados) {
-  const container = $('#cad-prod-mp-container');
-  if (!container) return;
-
-  const linha = document.createElement('div');
-  linha.className = 'prod-mp-line';
-
-  linha.innerHTML = `
-    <input type="text" class="prod-mp-desc" placeholder="Matéria-prima" />
-    <input type="number" class="prod-mp-qtd" min="0" step="0.01" placeholder="Qtd" />
-    <input type="number" class="prod-mp-custo-un" min="0" step="0.01" placeholder="Custo/un" />
-    <span class="prod-mp-total">R$ 0,00</span>
-    <button type="button" class="btn-text prod-mp-remover">Remover</button>
-  `;
-
-  container.appendChild(linha);
-
-  if (dados) {
-    linha.querySelector('.prod-mp-desc').value = dados.desc || '';
-    linha.querySelector('.prod-mp-qtd').value = dados.qtd || '';
-    linha.querySelector('.prod-mp-custo-un').value = dados.custoUn || '';
-  }
-
-  linha
-    .querySelectorAll('.prod-mp-qtd, .prod-mp-custo-un')
-    .forEach((input) => {
-      input.addEventListener('input', calcularProdutoCustoELucro);
+      const lista = loadArray(DB_KEYS.fornecedores);
+      lista.push({ id: uid(), nome, contato, notas });
+      saveArray(DB_KEYS.fornecedores, lista);
+      voltarLista();
     });
 
-  const btnRem = linha.querySelector('.prod-mp-remover');
-  btnRem.addEventListener('click', () => {
-    linha.remove();
-    calcularProdutoCustoELucro();
-  });
-
-  calcularProdutoCustoELucro();
-}
-
-function renderProdutos() {
-  const container = $('#lista-produtos-cad');
-  if (!container) return;
-
-  if (!produtos.length) {
-    container.innerHTML = `<div class="item-meta">Nenhum produto cadastrado.</div>`;
-    return;
+    renderFornecedores();
   }
 
-  const ordenados = [...produtos].sort((a, b) =>
-    a.desc.localeCompare(b.desc, 'pt-BR')
-  );
-
-  container.innerHTML = ordenados
-    .map(
-      (p) => `
+  // ----------------- PRODUTOS -----------------
+  function renderProdutos() {
+    const container = $('#lista-produtos-cad');
+    if (!container) return;
+    const produtos = loadArray(DB_KEYS.produtos)
+      .sort((a, b) => a.descricao.localeCompare(b.descricao, 'pt-BR'));
+    if (!produtos.length) {
+      container.innerHTML = '<div class="item-meta">Nenhum produto cadastrado.</div>';
+      return;
+    }
+    container.innerHTML = produtos.map(p => `
       <div class="item-card">
         <div class="item-row">
-          <span class="item-title">${p.desc} (${p.unid || ''})</span>
-          <span class="item-meta">Venda: ${formatMoney(p.venda)}</span>
+          <span class="item-title">${p.descricao}</span>
+          <span class="item-badge">${p.unidade || ''}</span>
         </div>
         <div class="item-meta">
-          Custo: ${formatMoney(p.custoTotal)} • Lucro: ${formatPercent(p.lucroPercent || 0)}
+          Custo: ${fmtMoeda(p.custoTotal || 0)} — Venda: ${fmtMoeda(p.valorVenda || 0)}
+        </div>
+        <div class="item-meta">
+          Lucro: ${p.lucroPercent != null ? p.lucroPercent.toFixed(1) + '%' : '-'}
         </div>
       </div>
-    `
-    )
-    .join('');
-}
-
-function initProdutos() {
-  const fabAdd = $('#fab-add-produto');
-  const sectionLista = $('#produtos-list-section');
-  const sectionForm = $('#produtos-form-section');
-  const btnVoltar = $('#btn-produtos-voltar-lista');
-  const btnLimpar = $('#cad-prod-limpar');
-  const btnSalvar = $('#cad-prod-salvar');
-  const btnAddMp = $('#cad-prod-mp-add');
-  const inputVenda = $('#cad-prod-venda');
-
-  if (!fabAdd || !sectionLista || !sectionForm) return;
-
-  function limparFormProduto() {
-    $('#cad-prod-desc').value = '';
-    $('#cad-prod-unid').value = '';
-    $('#cad-prod-custo').value = '';
-    $('#cad-prod-venda').value = '';
-    $('#cad-prod-lucro').textContent = '0%';
-    $('#cad-prod-notas').value = '';
-    const cont = $('#cad-prod-mp-container');
-    if (cont) cont.innerHTML = '';
-    adicionarLinhaMpProduto();
+    `).join('');
   }
 
-  fabAdd.addEventListener('click', () => {
-    sectionLista.style.display = 'none';
-    sectionForm.style.display = 'block';
-    limparFormProduto();
-  });
+  function recalcularCustoProduto() {
+    const container = $('#cad-prod-mp-container');
+    if (!container) return;
+    const mps = loadArray(DB_KEYS.mp);
+    let total = 0;
 
-  btnVoltar.addEventListener('click', () => {
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
+    container.querySelectorAll('.prod-mp-row').forEach(row => {
+      const sel = row.querySelector('.prod-mp-select');
+      const qtdInput = row.querySelector('.prod-mp-qtd');
+      const custoSpan = row.querySelector('.prod-mp-custo');
 
-  btnLimpar.addEventListener('click', limparFormProduto);
-
-  if (btnAddMp) {
-    btnAddMp.addEventListener('click', () => adicionarLinhaMpProduto());
-  }
-
-  if (inputVenda) {
-    inputVenda.addEventListener('input', calcularProdutoCustoELucro);
-  }
-
-  btnSalvar.addEventListener('click', () => {
-    const desc = $('#cad-prod-desc').value.trim();
-    if (!desc) {
-      alert('Informe a descrição do produto.');
-      return;
-    }
-
-    const unid = $('#cad-prod-unid').value;
-    const custoTotal = parseFloat(
-      ($('#cad-prod-custo').value || '').toString().replace(',', '.')
-    ) || 0;
-    const venda = parseFloat(
-      ($('#cad-prod-venda').value || '').toString().replace(',', '.')
-    ) || 0;
-    let lucroPercent = 0;
-    if (venda > 0) {
-      lucroPercent = ((venda - custoTotal) / venda) * 100;
-    }
-
-    const linhas = $$('#cad-prod-mp-container .prod-mp-line');
-    const mpItens = linhas.map((linha) => {
-      const d = linha.querySelector('.prod-mp-desc').value.trim();
-      const qtd = parseFloat(
-        linha.querySelector('.prod-mp-qtd').value.replace(',', '.')
-      ) || 0;
-      const custoUn = parseFloat(
-        linha.querySelector('.prod-mp-custo-un').value.replace(',', '.')
-      ) || 0;
-      return {
-        desc: d,
-        qtd,
-        custoUn,
-        total: qtd * custoUn
-      };
+      const mpId = sel.value;
+      const qtd = parseNumber(qtdInput.value);
+      const mp = mps.find(m => m.id === mpId);
+      const custoUnit = mp ? (mp.custo || 0) : 0;
+      const custoTotal = custoUnit * qtd;
+      total += custoTotal;
+      if (custoSpan) custoSpan.textContent = fmtMoeda(custoTotal);
     });
 
-    const novo = {
-      id: Date.now(),
-      desc,
-      unid,
-      custoTotal,
-      venda,
-      lucroPercent,
-      notas: $('#cad-prod-notas').value.trim(),
-      mpItens
-    };
-
-    produtos.push(novo);
-    saveData(STORAGE.produtos, produtos);
-    renderProdutos();
-    sectionForm.style.display = 'none';
-    sectionLista.style.display = 'block';
-  });
-
-  renderProdutos();
-}
-
-// ---------- NOVO PEDIDO ----------
-function atualizarTotaisPedido() {
-  const linhas = $$('#pedido-itens-container .pedido-item-line');
-  let totalVenda = 0;
-  let totalCusto = 0;
-
-  linhas.forEach((linha) => {
-    const qtd = parseFloat(
-      linha.querySelector('.pedido-item-qtd').value.replace(',', '.')
-    ) || 0;
-    const valor = parseFloat(
-      linha.querySelector('.pedido-item-valor').value.replace(',', '.')
-    ) || 0;
-    const custo = parseFloat(
-      linha.querySelector('.pedido-item-custo').value.replace(',', '.')
-    ) || 0;
-
-    totalVenda += qtd * valor;
-    totalCusto += qtd * custo;
-  });
-
-  $('#pedido-total-venda').textContent = formatMoney(totalVenda);
-  $('#pedido-total-custo').textContent = formatMoney(totalCusto);
-
-  let perc = 0;
-  if (totalVenda > 0) {
-    perc = ((totalVenda - totalCusto) / totalVenda) * 100;
-  }
-  $('#pedido-total-lucro').textContent = formatPercent(perc);
-}
-
-function adicionarLinhaPedidoItem(dados) {
-  const container = $('#pedido-itens-container');
-  if (!container) return;
-
-  const linha = document.createElement('div');
-  linha.className = 'pedido-item-line';
-
-  linha.innerHTML = `
-    <input type="text" class="pedido-item-desc" placeholder="Produto" />
-    <input type="number" class="pedido-item-qtd" min="0" step="1" placeholder="Qtd" />
-    <input type="number" class="pedido-item-valor" min="0" step="0.01" placeholder="Valor unitário" />
-    <input type="number" class="pedido-item-custo" min="0" step="0.01" placeholder="Custo unitário" />
-    <button type="button" class="btn-text pedido-item-remover">Remover</button>
-  `;
-
-  container.appendChild(linha);
-
-  if (dados) {
-    linha.querySelector('.pedido-item-desc').value = dados.desc || '';
-    linha.querySelector('.pedido-item-qtd').value = dados.qtd || '';
-    linha.querySelector('.pedido-item-valor').value = dados.valorUnit || '';
-    linha.querySelector('.pedido-item-custo').value = dados.custoUnit || '';
-  }
-
-  linha
-    .querySelectorAll(
-      '.pedido-item-qtd, .pedido-item-valor, .pedido-item-custo'
-    )
-    .forEach((input) => {
-      input.addEventListener('input', atualizarTotaisPedido);
-    });
-
-  linha.querySelector('.pedido-item-remover').addEventListener('click', () => {
-    linha.remove();
-    atualizarTotaisPedido();
-  });
-
-  atualizarTotaisPedido();
-}
-
-function initNovoPedido() {
-  const inputCliente = $('#pedido-cliente-input');
-  const sugestoes = $('#pedido-cliente-sugestoes');
-  const infoCard = $('#pedido-cliente-info');
-
-  if (!inputCliente || !sugestoes) return;
-
-  function limparClienteInfo() {
-    $('#pedido-cliente-tel').textContent = '';
-    $('#pedido-cliente-end').textContent = '';
-    $('#pedido-cliente-cid').textContent = '';
-    $('#pedido-cliente-est').textContent = '';
-    if (infoCard) infoCard.style.display = 'none';
-  }
-
-  function preencherClienteInfo(cliente) {
-    if (!cliente) {
-      limparClienteInfo();
-      return;
+    const custoInput = $('#cad-prod-custo');
+    if (custoInput) custoInput.value = total ? total.toFixed(2) : '';
+    const vendaInput = $('#cad-prod-venda');
+    const lucroBox = $('#cad-prod-lucro');
+    const venda = vendaInput ? parseNumber(vendaInput.value) : 0;
+    let lucro = 0;
+    if (total > 0 && venda > 0) {
+      lucro = ((venda - total) / total) * 100;
     }
-    $('#pedido-cliente-tel').textContent = cliente.tel || '';
-    $('#pedido-cliente-end').textContent = cliente.end || '';
-    $('#pedido-cliente-cid').textContent = cliente.cid || '';
-    $('#pedido-cliente-est').textContent = cliente.est || '';
-    infoCard.style.display = 'block';
+    if (lucroBox) lucroBox.textContent = total > 0 && venda > 0 ? `${lucro.toFixed(1)}%` : '0%';
   }
 
-  inputCliente.addEventListener('input', () => {
-    const termo = inputCliente.value.toLowerCase();
-    sugestoes.innerHTML = '';
-    if (!termo) return;
-
-    const filtrados = clientes.filter((c) =>
-      c.nome.toLowerCase().includes(termo)
+  function addLinhaMpProduto() {
+    const container = $('#cad-prod-mp-container');
+    if (!container) return;
+    const mps = loadArray(DB_KEYS.mp).sort((a, b) =>
+      a.descricao.localeCompare(b.descricao, 'pt-BR')
     );
 
-    if (!filtrados.length) return;
-
-    filtrados.forEach((c) => {
-      const item = document.createElement('div');
-      item.className = 'autocomplete-item';
-      item.textContent = `${c.nome} ${c.tel ? ' - ' + c.tel : ''}`;
-      item.addEventListener('click', () => {
-        inputCliente.value = c.nome;
-        sugestoes.innerHTML = '';
-        preencherClienteInfo(c);
-      });
-      sugestoes.appendChild(item);
-    });
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!sugestoes.contains(e.target) && e.target !== inputCliente) {
-      sugestoes.innerHTML = '';
+    if (!mps.length) {
+      alert('Cadastre matérias-primas antes de vincular a um produto.');
+      return;
     }
-  });
 
-  const btnAddItem = $('#btn-pedido-add-item');
-  if (btnAddItem) {
-    btnAddItem.addEventListener('click', () => adicionarLinhaPedidoItem());
-  }
+    const div = document.createElement('div');
+    div.className = 'prod-mp-row';
+    div.innerHTML = `
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Matéria-prima</label>
+          <select class="prod-mp-select">
+            <option value="">— selecione —</option>
+            ${mps.map(mp => `<option value="${mp.id}">${mp.descricao}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Qtd</label>
+          <input type="number" class="prod-mp-qtd" min="0" step="0.01" />
+        </div>
+      </div>
+      <div class="form-group prod-mp-footer">
+        <span class="item-meta">Custo desta MP: <span class="prod-mp-custo">${fmtMoeda(0)}</span></span>
+        <button type="button" class="btn-text prod-mp-remover">Remover</button>
+      </div>
+    `;
 
-  const btnLimpar = $('#btn-pedido-cancelar');
-  if (btnLimpar) {
-    btnLimpar.addEventListener('click', () => {
-      inputCliente.value = '';
-      limparClienteInfo();
-      const cont = $('#pedido-itens-container');
-      if (cont) cont.innerHTML = '';
-      adicionarLinhaPedidoItem();
-      atualizarTotaisPedido();
+    container.appendChild(div);
+
+    const sel = div.querySelector('.prod-mp-select');
+    const qtdInput = div.querySelector('.prod-mp-qtd');
+    const btnRemover = div.querySelector('.prod-mp-remover');
+
+    sel.addEventListener('change', recalcularCustoProduto);
+    qtdInput.addEventListener('input', recalcularCustoProduto);
+    btnRemover.addEventListener('click', () => {
+      div.remove();
+      recalcularCustoProduto();
     });
   }
 
-  const btnSalvar = $('#btn-pedido-salvar');
-  if (btnSalvar) {
-    btnSalvar.addEventListener('click', () => {
-      const clienteNome = inputCliente.value.trim();
-      if (!clienteNome) {
-        alert('Informe o cliente do pedido.');
+  function initProdutos() {
+    const listSection = $('#produtos-list-section');
+    const formSection = $('#produtos-form-section');
+    const fab = $('#fab-add-produto');
+    const btnVoltar = $('#btn-produtos-voltar-lista');
+    const btnSalvar = $('#cad-prod-salvar');
+    const btnLimpar = $('#cad-prod-limpar');
+    const btnAddMp = $('#cad-prod-mp-add');
+    const vendaInput = $('#cad-prod-venda');
+
+    function abrirForm() {
+      if (listSection) listSection.style.display = 'none';
+      if (formSection) formSection.style.display = 'block';
+      $('#cad-prod-desc').value = '';
+      $('#cad-prod-unid').value = '';
+      $('#cad-prod-custo').value = '';
+      $('#cad-prod-venda').value = '';
+      $('#cad-prod-lucro').textContent = '0%';
+      $('#cad-prod-notas').value = '';
+      const container = $('#cad-prod-mp-container');
+      if (container) container.innerHTML = '';
+    }
+
+    function voltarLista() {
+      if (formSection) formSection.style.display = 'none';
+      if (listSection) listSection.style.display = 'block';
+      renderProdutos();
+    }
+
+    fab?.addEventListener('click', abrirForm);
+    btnVoltar?.addEventListener('click', voltarLista);
+    btnLimpar?.addEventListener('click', () => abrirForm());
+    btnAddMp?.addEventListener('click', addLinhaMpProduto);
+    vendaInput?.addEventListener('input', recalcularCustoProduto);
+
+    btnSalvar?.addEventListener('click', () => {
+      const desc = $('#cad-prod-desc').value.trim();
+      if (!desc) {
+        alert('Informe a descrição do produto.');
         return;
       }
+      const unidade = $('#cad-prod-unid').value.trim();
+      const container = $('#cad-prod-mp-container');
+      const mps = loadArray(DB_KEYS.mp);
+      const mpItens = [];
+      let total = 0;
 
-      const linhas = $$('#pedido-itens-container .pedido-item-line');
-      if (!linhas.length) {
-        alert('Adicione pelo menos um item ao pedido.');
-        return;
-      }
-
-      const itens = [];
-      linhas.forEach((linha) => {
-        const desc = linha
-          .querySelector('.pedido-item-desc')
-          .value.trim();
-        const qtd = parseFloat(
-          linha.querySelector('.pedido-item-qtd').value.replace(',', '.')
-        ) || 0;
-        const valorUnit = parseFloat(
-          linha
-            .querySelector('.pedido-item-valor')
-            .value.replace(',', '.')
-        ) || 0;
-        const custoUnit = parseFloat(
-          linha
-            .querySelector('.pedido-item-custo')
-            .value.replace(',', '.')
-        ) || 0;
-        if (!desc || qtd <= 0 || valorUnit <= 0) return;
-        itens.push({
-          desc,
+      container.querySelectorAll('.prod-mp-row').forEach(row => {
+        const sel = row.querySelector('.prod-mp-select');
+        const qtdInput = row.querySelector('.prod-mp-qtd');
+        const mpId = sel.value;
+        const qtd = parseNumber(qtdInput.value);
+        if (!mpId || !qtd) return;
+        const mp = mps.find(m => m.id === mpId);
+        if (!mp) return;
+        const custoUnit = mp.custo || 0;
+        const custoTotal = custoUnit * qtd;
+        total += custoTotal;
+        mpItens.push({
+          mpId,
+          descricao: mp.descricao,
           qtd,
-          valorUnit,
           custoUnit,
-          total: qtd * valorUnit,
-          totalCusto: qtd * custoUnit
+          custoTotal
         });
       });
 
-      if (!itens.length) {
-        alert('Preencha pelo menos um item com descrição, quantidade e valor.');
+      const venda = parseNumber($('#cad-prod-venda').value);
+      let lucroPercent = null;
+      if (total > 0 && venda > 0) {
+        lucroPercent = ((venda - total) / total) * 100;
+      }
+
+      const notas = $('#cad-prod-notas').value.trim();
+
+      const produtos = loadArray(DB_KEYS.produtos);
+      produtos.push({
+        id: uid(),
+        descricao: desc,
+        unidade,
+        materiasPrimas: mpItens,
+        custoTotal: total,
+        valorVenda: venda,
+        lucroPercent,
+        notas
+      });
+      saveArray(DB_KEYS.produtos, produtos);
+      voltarLista();
+    });
+
+    renderProdutos();
+  }
+
+  // ----------------- CONSULTA ESTOQUE -----------------
+  function renderConsultaEstoque() {
+    const container = $('#consulta-estoque-lista');
+    if (!container) return;
+    const mps = loadArray(DB_KEYS.mp).sort((a, b) =>
+      a.descricao.localeCompare(b.descricao, 'pt-BR')
+    );
+    if (!mps.length) {
+      container.innerHTML = '<div class="item-meta">Cadastre matérias-primas para visualizar aqui.</div>';
+      return;
+    }
+    container.innerHTML = mps.map(mp => `
+      <div class="item-card">
+        <div class="item-row">
+          <span class="item-title">${mp.descricao}</span>
+          <span class="item-badge">${mp.unidade || ''}</span>
+        </div>
+        <div class="item-meta">
+          Custo unitário: ${fmtMoeda(mp.custo || 0)}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ----------------- PEDIDOS -----------------
+  function clientesAutocompleteSetup() {
+    const input = $('#pedido-cliente-input');
+    const sugestoesBox = $('#pedido-cliente-sugestoes');
+    const cardInfo = $('#pedido-cliente-info');
+    const telSpan = $('#pedido-cliente-tel');
+    const endSpan = $('#pedido-cliente-end');
+    const cidSpan = $('#pedido-cliente-cid');
+    const estSpan = $('#pedido-cliente-est');
+
+    if (!input || !sugestoesBox) return;
+
+    input.addEventListener('input', () => {
+      const termo = input.value.trim().toLowerCase();
+      const clientes = loadArray(DB_KEYS.clientes)
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      if (!termo) {
+        sugestoesBox.innerHTML = '';
+        sugestoesBox.style.display = 'none';
         return;
       }
-
-      let totalVenda = 0;
-      let totalCusto = 0;
-      itens.forEach((i) => {
-        totalVenda += i.total;
-        totalCusto += i.totalCusto;
-      });
-      let lucroPercent = 0;
-      if (totalVenda > 0) {
-        lucroPercent = ((totalVenda - totalCusto) / totalVenda) * 100;
+      const filtrados = clientes.filter(c =>
+        c.nome.toLowerCase().includes(termo)
+      );
+      if (!filtrados.length) {
+        sugestoesBox.innerHTML = '<div class="autocomplete-item disabled">Nenhum cliente encontrado</div>';
+        sugestoesBox.style.display = 'block';
+        return;
       }
+      sugestoesBox.innerHTML = filtrados.map(c => `
+        <div class="autocomplete-item" data-id="${c.id}">
+          ${c.nome}
+        </div>
+      `).join('');
+      sugestoesBox.style.display = 'block';
 
-      const clienteObj =
-        clientes.find((c) => c.nome === clienteNome) || null;
+      sugestoesBox.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const id = item.dataset.id;
+          const cl = filtrados.find(c => c.id === id);
+          if (!cl) return;
+          input.value = cl.nome;
+          sugestoesBox.innerHTML = '';
+          sugestoesBox.style.display = 'none';
 
-      const pedido = {
-        id: Date.now(),
-        clienteNome,
-        cliente: clienteObj,
-        itens,
-        totalVenda,
-        totalCusto,
-        lucroPercent,
-        statusPedido: 'Aguardando',
-        statusPagamento: 'Pendente'
-      };
-
-      pedidos.push(pedido);
-      saveData(STORAGE.pedidos, pedidos);
-
-      // Atualiza telas relacionadas
-      renderPedidosLista();
-      renderStatusPedidos();
-      renderVendasResumo();
-      atualizarTotaisPedido();
-
-      // Reseta form
-      inputCliente.value = '';
-      limparClienteInfo();
-      const cont = $('#pedido-itens-container');
-      if (cont) cont.innerHTML = '';
-      adicionarLinhaPedidoItem();
-
-      alert('Pedido salvo com sucesso!');
+          input.dataset.clienteId = cl.id;
+          if (cardInfo) cardInfo.style.display = 'block';
+          if (telSpan) telSpan.textContent = cl.tel || '-';
+          if (endSpan) endSpan.textContent = cl.endereco || '-';
+          if (cidSpan) cidSpan.textContent = cl.cidade || '-';
+          if (estSpan) estSpan.textContent = cl.estado || '-';
+        });
+      });
     });
   }
 
-  // garante pelo menos uma linha ao abrir
-  const cont = $('#pedido-itens-container');
-  if (cont && !cont.children.length) {
-    adicionarLinhaPedidoItem();
-  }
-}
+  function addLinhaItemPedido() {
+    const container = $('#pedido-itens-container');
+    if (!container) return;
+    const produtos = loadArray(DB_KEYS.produtos)
+      .sort((a, b) => a.descricao.localeCompare(b.descricao, 'pt-BR'));
 
-// ---------- LISTA DE PEDIDOS ----------
-function renderPedidosLista() {
-  const container = $('#lista-pedidos');
-  if (!container) return;
+    if (!produtos.length) {
+      alert('Cadastre produtos antes de montar pedidos.');
+      return;
+    }
 
-  if (!pedidos.length) {
-    container.innerHTML = `<div class="item-meta">Nenhum pedido cadastrado.</div>`;
-    return;
-  }
-
-  const ordenados = [...pedidos].sort((a, b) => b.id - a.id);
-
-  container.innerHTML = ordenados
-    .map(
-      (p) => `
-      <div class="item-card">
-        <div class="item-row">
-          <span class="item-title">#${p.id} - ${p.clienteNome}</span>
-          <span class="item-meta">${formatMoney(p.totalVenda)}</span>
+    const div = document.createElement('div');
+    div.className = 'pedido-item-row';
+    div.innerHTML = `
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Produto</label>
+          <select class="pedido-prod-select">
+            <option value="">— selecione —</option>
+            ${produtos.map(p => `<option value="${p.id}">${p.descricao}</option>`).join('')}
+          </select>
         </div>
-        <div class="item-meta">
-          Status: ${p.statusPedido} • Pagamento: ${p.statusPagamento}
+        <div class="form-group">
+          <label>Qtd</label>
+          <input type="number" class="pedido-prod-qtd" min="0" step="0.01" />
         </div>
       </div>
-    `
-    )
-    .join('');
-}
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Valor unitário</label>
+          <input type="number" class="pedido-prod-venda" min="0" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Total linha</label>
+          <div class="descricao-caixa pedido-prod-total">R$ 0,00</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <button type="button" class="btn-text pedido-remover-item">Remover</button>
+      </div>
+    `;
 
-// ---------- STATUS DOS PEDIDOS ----------
-function renderStatusPedidos() {
-  const container = $('#lista-status-pedidos');
-  if (!container) return;
+    container.appendChild(div);
 
-  if (!pedidos.length) {
-    container.innerHTML = `<div class="item-meta">Nenhum pedido para atualizar.</div>`;
-    return;
+    const sel = div.querySelector('.pedido-prod-select');
+    const qtdInput = div.querySelector('.pedido-prod-qtd');
+    const vendaInput = div.querySelector('.pedido-prod-venda');
+    const totalDiv = div.querySelector('.pedido-prod-total');
+    const btnRemover = div.querySelector('.pedido-remover-item');
+
+    function atualizarLinha() {
+      const prodId = sel.value;
+      const prod = produtos.find(p => p.id === prodId);
+      let vendaUnit = parseNumber(vendaInput.value);
+      if (prod && !vendaUnit) {
+        vendaUnit = prod.valorVenda || 0;
+        vendaInput.value = vendaUnit ? vendaUnit.toFixed(2) : '';
+      }
+      const qtd = parseNumber(qtdInput.value);
+      const total = vendaUnit * qtd;
+      totalDiv.textContent = fmtMoeda(total);
+      recalcularTotaisPedido();
+    }
+
+    sel.addEventListener('change', atualizarLinha);
+    qtdInput.addEventListener('input', atualizarLinha);
+    vendaInput.addEventListener('input', atualizarLinha);
+
+    btnRemover.addEventListener('click', () => {
+      div.remove();
+      recalcularTotaisPedido();
+    });
   }
 
-  const statusOpcoes = ['Aguardando', 'Em produção', 'Concluído', 'Cancelado'];
-  const pagamentoOpcoes = ['Pendente', 'Pago parcial', 'Pago total'];
+  function recalcularTotaisPedido() {
+    const container = $('#pedido-itens-container');
+    if (!container) return;
+    const produtos = loadArray(DB_KEYS.produtos);
+    let totalVenda = 0;
+    let totalCusto = 0;
 
-  const ordenados = [...pedidos].sort((a, b) => b.id - a.id);
+    container.querySelectorAll('.pedido-item-row').forEach(row => {
+      const sel = row.querySelector('.pedido-prod-select');
+      const qtdInput = row.querySelector('.pedido-prod-qtd');
+      const vendaInput = row.querySelector('.pedido-prod-venda');
 
-  container.innerHTML = ordenados
-    .map(
-      (p) => `
+      const prodId = sel.value;
+      const qtd = parseNumber(qtdInput.value);
+      const vendaUnit = parseNumber(vendaInput.value);
+      const totalLinha = vendaUnit * qtd;
+      totalVenda += totalLinha;
+
+      const prod = produtos.find(p => p.id === prodId);
+      const custoUnit = prod && prod.custoTotal && prod.qtdBase
+        ? (prod.custoTotal / prod.qtdBase)
+        : (prod ? (prod.custoTotal || 0) : 0);
+      totalCusto += (custoUnit || 0) * qtd;
+    });
+
+    const elVenda = $('#pedido-total-venda');
+    const elCusto = $('#pedido-total-custo');
+    const elLucro = $('#pedido-total-lucro');
+    if (elVenda) elVenda.textContent = fmtMoeda(totalVenda);
+    if (elCusto) elCusto.textContent = fmtMoeda(totalCusto);
+    let lucroPercent = 0;
+    if (totalCusto > 0 && totalVenda > 0) {
+      lucroPercent = ((totalVenda - totalCusto) / totalCusto) * 100;
+    }
+    if (elLucro) elLucro.textContent =
+      totalCusto > 0 && totalVenda > 0 ? `${lucroPercent.toFixed(1)}%` : '0%';
+  }
+
+  function limparPedido() {
+    $('#pedido-cliente-input').value = '';
+    const sug = $('#pedido-cliente-sugestoes');
+    if (sug) {
+      sug.innerHTML = '';
+      sug.style.display = 'none';
+    }
+    const info = $('#pedido-cliente-info');
+    if (info) info.style.display = 'none';
+    const cont = $('#pedido-itens-container');
+    if (cont) cont.innerHTML = '';
+    recalcularTotaisPedido();
+  }
+
+  function initPedido() {
+    clientesAutocompleteSetup();
+    $('#btn-pedido-add-item')?.addEventListener('click', addLinhaItemPedido);
+    $('#btn-pedido-cancelar')?.addEventListener('click', limparPedido);
+    $('#btn-pedido-salvar')?.addEventListener('click', () => {
+      const clienteNome = $('#pedido-cliente-input').value.trim();
+      if (!clienteNome) {
+        alert('Selecione o cliente.');
+        return;
+      }
+      const clienteId = $('#pedido-cliente-input').dataset.clienteId || null;
+      const itensContainer = $('#pedido-itens-container');
+      const produtos = loadArray(DB_KEYS.produtos);
+      const itens = [];
+      let totalVenda = 0;
+      let totalCusto = 0;
+
+      itensContainer.querySelectorAll('.pedido-item-row').forEach(row => {
+        const sel = row.querySelector('.pedido-prod-select');
+        const qtdInput = row.querySelector('.pedido-prod-qtd');
+        const vendaInput = row.querySelector('.pedido-prod-venda');
+
+        const prodId = sel.value;
+        const qtd = parseNumber(qtdInput.value);
+        const vendaUnit = parseNumber(vendaInput.value);
+        if (!prodId || !qtd || !vendaUnit) return;
+
+        const totalLinha = vendaUnit * qtd;
+        const prod = produtos.find(p => p.id === prodId);
+        const custoUnit = prod && prod.custoTotal && prod.qtdBase
+          ? (prod.custoTotal / prod.qtdBase)
+          : (prod ? (prod.custoTotal || 0) : 0);
+        const custoLinha = (custoUnit || 0) * qtd;
+
+        itens.push({
+          prodId,
+          descricao: prod ? prod.descricao : '',
+          qtd,
+          valorUnitario: vendaUnit,
+          totalLinha,
+          custoLinha
+        });
+
+        totalVenda += totalLinha;
+        totalCusto += custoLinha;
+      });
+
+      if (!itens.length) {
+        alert('Adicione ao menos um produto.');
+        return;
+      }
+
+      const pedidos = loadArray(DB_KEYS.pedidos);
+      const pedido = {
+        id: uid(),
+        dataCriacao: new Date().toISOString(),
+        clienteId,
+        clienteNome,
+        itens,
+        totalVenda,
+        totalCusto,
+        statusPedido: 'aguardando',
+        statusPagamento: 'pendente'
+      };
+      pedidos.push(pedido);
+      saveArray(DB_KEYS.pedidos, pedidos);
+      alert('Pedido salvo localmente.');
+      limparPedido();
+      renderPedidosLista();
+      renderStatusPedidos();
+      renderResumoVendas();
+    });
+  }
+
+  function renderPedidosLista() {
+    const container = $('#lista-pedidos');
+    if (!container) return;
+    const pedidos = loadArray(DB_KEYS.pedidos)
+      .sort((a, b) => (a.dataCriacao || '').localeCompare(b.dataCriacao || ''));
+    if (!pedidos.length) {
+      container.innerHTML = '<div class="item-meta">Nenhum pedido cadastrado.</div>';
+      return;
+    }
+    container.innerHTML = pedidos.map(p => `
       <div class="item-card">
         <div class="item-row">
-          <span class="item-title">#${p.id} - ${p.clienteNome}</span>
-          <span class="item-meta">${formatMoney(p.totalVenda)}</span>
+          <span class="item-title">${p.clienteNome}</span>
+          <span class="item-badge">${fmtDataISO(p.dataCriacao)}</span>
         </div>
-        <div class="form-row-2">
+        <div class="item-meta">
+          ${p.itens.length} item(s) — Total: ${fmtMoeda(p.totalVenda || 0)}
+        </div>
+        <div class="item-meta">
+          Status: ${p.statusPedido || '-'} / Pagamento: ${p.statusPagamento || '-'}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderStatusPedidos() {
+    const container = $('#lista-status-pedidos');
+    if (!container) return;
+    const pedidos = loadArray(DB_KEYS.pedidos)
+      .sort((a, b) => (a.dataCriacao || '').localeCompare(b.dataCriacao || ''));
+    if (!pedidos.length) {
+      container.innerHTML = '<div class="item-meta">Nenhum pedido para atualizar.</div>';
+      return;
+    }
+    container.innerHTML = pedidos.map(p => `
+      <div class="item-card" data-id="${p.id}">
+        <div class="item-row">
+          <span class="item-title">${p.clienteNome}</span>
+          <span class="item-badge">${fmtDataISO(p.dataCriacao)}</span>
+        </div>
+        <div class="item-meta">
+          Total: ${fmtMoeda(p.totalVenda || 0)}
+        </div>
+        <div class="form-row-2 mt-4">
           <div class="form-group">
             <label>Status do pedido</label>
-            <select class="status-pedido-select" data-id="${p.id}">
-              ${statusOpcoes
-                .map(
-                  (s) =>
-                    `<option value="${s}" ${
-                      p.statusPedido === s ? 'selected' : ''
-                    }>${s}</option>`
-                )
-                .join('')}
+            <select class="status-pedido-select">
+              <option value="aguardando" ${p.statusPedido === 'aguardando' ? 'selected' : ''}>Aguardando</option>
+              <option value="em_producao" ${p.statusPedido === 'em_producao' ? 'selected' : ''}>Em produção</option>
+              <option value="concluido" ${p.statusPedido === 'concluido' ? 'selected' : ''}>Concluído</option>
             </select>
           </div>
           <div class="form-group">
             <label>Status do pagamento</label>
-            <select class="status-pag-select" data-id="${p.id}">
-              ${pagamentoOpcoes
-                .map(
-                  (s) =>
-                    `<option value="${s}" ${
-                      p.statusPagamento === s ? 'selected' : ''
-                    }>${s}</option>`
-                )
-                .join('')}
+            <select class="status-pag-select">
+              <option value="pendente" ${p.statusPagamento === 'pendente' ? 'selected' : ''}>Pendente</option>
+              <option value="parcial" ${p.statusPagamento === 'parcial' ? 'selected' : ''}>Parcial</option>
+              <option value="pago" ${p.statusPagamento === 'pago' ? 'selected' : ''}>Pago</option>
             </select>
           </div>
         </div>
       </div>
-    `
-    )
-    .join('');
+    `).join('');
 
-  $$('.status-pedido-select').forEach((sel) => {
-    sel.addEventListener('change', () => {
-      const id = Number(sel.dataset.id);
-      const pedido = pedidos.find((p) => p.id === id);
-      if (pedido) {
-        pedido.statusPedido = sel.value;
-        saveData(STORAGE.pedidos, pedidos);
-        renderPedidosLista();
-      }
-    });
-  });
+    container.querySelectorAll('.item-card').forEach(card => {
+      const id = card.dataset.id;
+      const selStatus = card.querySelector('.status-pedido-select');
+      const selPag = card.querySelector('.status-pag-select');
 
-  $$('.status-pag-select').forEach((sel) => {
-    sel.addEventListener('change', () => {
-      const id = Number(sel.dataset.id);
-      const pedido = pedidos.find((p) => p.id === id);
-      if (pedido) {
-        pedido.statusPagamento = sel.value;
-        saveData(STORAGE.pedidos, pedidos);
-        renderPedidosLista();
-        renderVendasResumo();
-      }
-    });
-  });
-}
-
-// ---------- RESUMO DE VENDAS ----------
-function renderVendasResumo() {
-  const spanQtde = $('#vendas-resumo-qtde');
-  const spanTotal = $('#vendas-resumo-total');
-  if (!spanQtde || !spanTotal) return;
-
-  const qtde = pedidos.length;
-  let total = 0;
-  pedidos.forEach((p) => {
-    total += p.totalVenda || 0;
-  });
-
-  spanQtde.textContent = qtde.toString();
-  spanTotal.textContent = (Number(total) || 0).toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
-// ---------- CONSULTA ESTOQUE ----------
-function renderEstoque() {
-  const container = $('#consulta-estoque-lista');
-  if (!container) return;
-
-  const termo = ($('#estoque-busca')?.value || '').toLowerCase();
-
-  let filtrados = mpList;
-  if (termo) {
-    filtrados = mpList.filter((m) =>
-      m.desc.toLowerCase().includes(termo)
-    );
-  }
-
-  if (!filtrados.length) {
-    container.innerHTML = `<div class="item-meta">Nenhuma matéria-prima encontrada.</div>`;
-    return;
-  }
-
-  const ordenados = [...filtrados].sort((a, b) =>
-    a.desc.localeCompare(b.desc, 'pt-BR')
-  );
-
-  container.innerHTML = ordenados
-    .map(
-      (m) => `
-      <div class="item-card">
-        <div class="item-row">
-          <span class="item-title">${m.desc}</span>
-          <span class="item-meta">${m.unid || ''}</span>
-        </div>
-        <div class="item-meta">
-          Custo: ${formatMoney(m.custo)} ${m.unid ? ' / ' + m.unid : ''}
-        </div>
-      </div>
-    `
-    )
-    .join('');
-}
-
-function initEstoque() {
-  const inputBusca = $('#estoque-busca');
-  if (!inputBusca) return;
-  inputBusca.addEventListener('input', renderEstoque);
-  renderEstoque();
-}
-
-// ---------- FINANÇAS (LANÇAMENTOS) ----------
-function initFinancas() {
-  const selectTipo = $('#lanc-tipo');
-  if (!selectTipo) return;
-
-  const blocos = {
-    'saida-investimento': $('#bloco-saida-investimento'),
-    'compra-mp': $('#bloco-compra-mp'),
-    venda: $('#bloco-venda'),
-    'entrada-investimento': $('#bloco-entrada-investimento')
-  };
-
-  function mostrarBloco(tipo) {
-    Object.keys(blocos).forEach((t) => {
-      if (blocos[t]) blocos[t].style.display = t === tipo ? 'block' : 'none';
-    });
-  }
-
-  selectTipo.addEventListener('change', () => {
-    mostrarBloco(selectTipo.value || '');
-  });
-
-  const chkParcial = $('#lanc-venda-parcial');
-  if (chkParcial) {
-    chkParcial.addEventListener('change', () => {
-      const parcialBloco = $('#lanc-venda-parcial-bloco');
-      const totalBloco = $('#lanc-venda-data-total-bloco');
-      if (chkParcial.checked) {
-        if (parcialBloco) parcialBloco.style.display = 'block';
-        if (totalBloco) totalBloco.style.display = 'none';
-      } else {
-        if (parcialBloco) parcialBloco.style.display = 'none';
-        if (totalBloco) totalBloco.style.display = 'block';
-      }
-    });
-  }
-
-  const btnLimpar = $('#lanc-cancelar');
-  if (btnLimpar) {
-    btnLimpar.addEventListener('click', () => {
-      selectTipo.value = '';
-      mostrarBloco('');
-      [
-        '#lanc-saida-valor',
-        '#lanc-saida-tipo',
-        '#lanc-saida-data',
-        '#lanc-mp-material',
-        '#lanc-mp-qtd',
-        '#lanc-mp-fornecedor',
-        '#lanc-mp-valor',
-        '#lanc-mp-data',
-        '#lanc-venda-pedido',
-        '#lanc-venda-valor-pago',
-        '#lanc-venda-data',
-        '#lanc-venda-data-total',
-        '#lanc-ent-valor',
-        '#lanc-ent-desc',
-        '#lanc-ent-data'
-      ].forEach((sel) => {
-        const el = $(sel);
-        if (el) el.value = '';
+      selStatus.addEventListener('change', () => {
+        atualizarStatusPedido(id, selStatus.value, null);
       });
-      $('#lanc-venda-descricao').textContent = 'Selecione um pedido.';
-      $('#lanc-venda-valor').textContent = 'R$ 0,00';
-      if (chkParcial) chkParcial.checked = false;
-      if ($('#lanc-venda-parcial-bloco'))
-        $('#lanc-venda-parcial-bloco').style.display = 'none';
-      if ($('#lanc-venda-data-total-bloco'))
-        $('#lanc-venda-data-total-bloco').style.display = 'block';
+      selPag.addEventListener('change', () => {
+        atualizarStatusPedido(id, null, selPag.value);
+      });
     });
   }
 
-  // atalho simples: ao digitar número de pedido em venda, preenche descrição/valor se existir
-  const inputPedidoVenda = $('#lanc-venda-pedido');
-  if (inputPedidoVenda) {
-    inputPedidoVenda.addEventListener('blur', () => {
-      const termo = inputPedidoVenda.value.trim();
-      if (!termo) return;
+  function atualizarStatusPedido(id, statusPedido, statusPag) {
+    const pedidos = loadArray(DB_KEYS.pedidos);
+    const idx = pedidos.findIndex(p => p.id === id);
+    if (idx === -1) return;
+    if (statusPedido) pedidos[idx].statusPedido = statusPedido;
+    if (statusPag) pedidos[idx].statusPagamento = statusPag;
+    saveArray(DB_KEYS.pedidos, pedidos);
+    renderPedidosLista();
+    renderResumoVendas();
+  }
 
-      const pedido = pedidos.find(
-        (p) =>
-          p.id.toString() === termo ||
-          p.clienteNome.toLowerCase().includes(termo.toLowerCase())
+  // ----------------- FINANÇAS / LANÇAMENTOS -----------------
+  function initLancamentos() {
+    const selTipo = $('#lanc-tipo');
+    const blocos = {
+      'saida-investimento': $('#bloco-saida-investimento'),
+      'compra-mp': $('#bloco-compra-mp'),
+      'venda': $('#bloco-venda'),
+      'entrada-investimento': $('#bloco-entrada-investimento')
+    };
+
+    function mostrarBloco(tipo) {
+      Object.keys(blocos).forEach(k => {
+        if (blocos[k]) {
+          blocos[k].style.display = (k === tipo) ? 'block' : 'none';
+        }
+      });
+    }
+
+    selTipo?.addEventListener('change', () => {
+      mostrarBloco(selTipo.value || '');
+    });
+
+    const chkParcial = $('#lanc-venda-parcial');
+    const parcialBloco = $('#lanc-venda-parcial-bloco');
+    const dataTotalBloco = $('#lanc-venda-data-total-bloco');
+
+    chkParcial?.addEventListener('change', () => {
+      if (chkParcial.checked) {
+        parcialBloco.style.display = 'block';
+        dataTotalBloco.style.display = 'none';
+      } else {
+        parcialBloco.style.display = 'none';
+        dataTotalBloco.style.display = 'block';
+      }
+    });
+
+    $('#lanc-cancelar')?.addEventListener('click', () => {
+      selTipo.value = '';
+      mostrarBloco('');
+    });
+
+    // autocomplete de pedido na tela de venda
+    const inputPedido = $('#lanc-venda-pedido');
+    const sugPedido = $('#lanc-venda-pedido-sugestoes');
+    const descBox = $('#lanc-venda-descricao');
+    const valorBox = $('#lanc-venda-valor');
+
+    inputPedido?.addEventListener('input', () => {
+      const termo = inputPedido.value.trim().toLowerCase();
+      const pedidos = loadArray(DB_KEYS.pedidos);
+      if (!termo) {
+        sugPedido.innerHTML = '';
+        sugPedido.style.display = 'none';
+        return;
+      }
+      const filtrados = pedidos.filter(p =>
+        p.clienteNome.toLowerCase().includes(termo)
       );
-      if (!pedido) return;
-
-      const descCaixa = $('#lanc-venda-descricao');
-      const valorCaixa = $('#lanc-venda-valor');
-
-      if (descCaixa) {
-        const listaDesc = pedido.itens
-          .map((i) => `${i.qtd}x ${i.desc}`)
-          .join(' | ');
-        descCaixa.textContent = listaDesc;
+      if (!filtrados.length) {
+        sugPedido.innerHTML = '<div class="autocomplete-item disabled">Nenhum pedido encontrado</div>';
+        sugPedido.style.display = 'block';
+        return;
       }
-      if (valorCaixa) {
-        valorCaixa.textContent = formatMoney(pedido.totalVenda);
-      }
+      sugPedido.innerHTML = filtrados.map(p => `
+        <div class="autocomplete-item" data-id="${p.id}">
+          ${p.clienteNome} — ${fmtDataISO(p.dataCriacao)}
+        </div>
+      `).join('');
+      sugPedido.style.display = 'block';
+
+      sugPedido.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const id = item.dataset.id;
+          const ped = filtrados.find(p => p.id === id);
+          if (!ped) return;
+          inputPedido.value = `${ped.clienteNome} — ${fmtDataISO(ped.dataCriacao)}`;
+          inputPedido.dataset.pedidoId = ped.id;
+          sugPedido.innerHTML = '';
+          sugPedido.style.display = 'none';
+
+          descBox.textContent = ped.itens.map(i =>
+            `${i.qtd}x ${i.descricao}`
+          ).join(' | ');
+          valorBox.textContent = fmtMoeda(ped.totalVenda || 0);
+        });
+      });
     });
-  }
 
-  const btnSalvar = $('#lanc-salvar');
-  if (btnSalvar) {
-    btnSalvar.addEventListener('click', () => {
-      const tipo = selectTipo.value;
+    $('#lanc-salvar')?.addEventListener('click', () => {
+      const tipo = selTipo.value;
       if (!tipo) {
         alert('Selecione o tipo de lançamento.');
         return;
       }
-
-      let registro = {
-        id: Date.now(),
-        tipo
-      };
+      const lancs = loadArray(DB_KEYS.lancamentos);
 
       if (tipo === 'saida-investimento') {
-        registro.valor =
-          parseFloat(
-            ($('#lanc-saida-valor').value || '').toString().replace(',', '.')
-          ) || 0;
-        registro.desc = $('#lanc-saida-tipo').value.trim();
-        registro.data = $('#lanc-saida-data').value;
-      } else if (tipo === 'compra-mp') {
-        registro.material = $('#lanc-mp-material').value.trim();
-        registro.qtd =
-          parseFloat(
-            ($('#lanc-mp-qtd').value || '').toString().replace(',', '.')
-          ) || 0;
-        registro.fornecedor = $('#lanc-mp-fornecedor').value.trim();
-        registro.valor =
-          parseFloat(
-            ($('#lanc-mp-valor').value || '').toString().replace(',', '.')
-          ) || 0;
-        registro.data = $('#lanc-mp-data').value;
-      } else if (tipo === 'venda') {
-        registro.pedidoRef = $('#lanc-venda-pedido').value.trim();
-        registro.valorPedidoTexto = $('#lanc-venda-valor').textContent;
-        registro.pagoParcial = !!$('#lanc-venda-parcial').checked;
-        if (registro.pagoParcial) {
-          registro.valorPago =
-            parseFloat(
-              (
-                $('#lanc-venda-valor-pago').value || ''
-              ).toString().replace(',', '.')
-            ) || 0;
-          registro.data = $('#lanc-venda-data').value;
-        } else {
-          registro.valorPagoTexto = $('#lanc-venda-valor').textContent;
-          registro.data = $('#lanc-venda-data-total').value;
+        const valor = parseNumber($('#lanc-saida-valor').value);
+        if (!valor) {
+          alert('Informe o valor.');
+          return;
         }
-      } else if (tipo === 'entrada-investimento') {
-        registro.valor =
-          parseFloat(
-            ($('#lanc-ent-valor').value || '').toString().replace(',', '.')
-          ) || 0;
-        registro.desc = $('#lanc-ent-desc').value.trim();
-        registro.data = $('#lanc-ent-data').value;
-      }
+        const desc = $('#lanc-saida-tipo').value.trim();
+        const data = $('#lanc-saida-data').value;
+        lancs.push({
+          id: uid(),
+          tipo,
+          valor,
+          descricao: desc,
+          data
+        });
+      } else if (tipo === 'compra-mp') {
+        const mat = $('#lanc-mp-material').value.trim();
+        const qtd = parseNumber($('#lanc-mp-qtd').value);
+        const forn = $('#lanc-mp-fornecedor').value.trim();
+        const valor = parseNumber($('#lanc-mp-valor').value);
+        const data = $('#lanc-mp-data').value;
+        if (!mat || !valor) {
+          alert('Informe pelo menos a matéria-prima e o valor.');
+          return;
+        }
+        lancs.push({
+          id: uid(),
+          tipo,
+          material: mat,
+          qtd,
+          fornecedor: forn,
+          valor,
+          data
+        });
+      } else if (tipo === 'venda') {
+        const pedidoId = inputPedido.dataset.pedidoId || null;
+        const valorPedido = (() => {
+          const ped = loadArray(DB_KEYS.pedidos).find(p => p.id === pedidoId);
+          return ped ? ped.totalVenda || 0 : 0;
+        })();
+        let valor = valorPedido;
+        let pago = valorPedido;
+        let statusPag = 'pago';
+        let data = $('#lanc-venda-data-total').value;
 
-      lancamentos.push(registro);
-      saveData(STORAGE.lancamentos, lancamentos);
-      alert('Lançamento salvo.');
-    });
-  }
-}
+        if ($('#lanc-venda-parcial').checked) {
+          pago = parseNumber($('#lanc-venda-valor-pago').value);
+          if (!pago) {
+            alert('Informe o valor pago.');
+            return;
+          }
+          valor = valorPedido;
+          statusPag = 'parcial';
+          data = $('#lanc-venda-data').value;
+        }
 
-// ---------- AGENDA ----------
-function initAgendaRegistro() {
-  const selectTipo = $('#agenda-tipo');
-  const blocoPedido = $('#agenda-pedido-bloco');
-  const btnLimpar = $('#agenda-reg-limpar');
-  const btnSalvar = $('#agenda-reg-salvar');
-
-  if (!selectTipo || !btnSalvar) return;
-
-  selectTipo.addEventListener('change', () => {
-    if (selectTipo.value === 'producao' || selectTipo.value === 'entrega') {
-      blocoPedido.style.display = 'block';
-    } else {
-      blocoPedido.style.display = 'none';
-    }
-  });
-
-  if (btnLimpar) {
-    btnLimpar.addEventListener('click', () => {
-      selectTipo.value = '';
-      $('#agenda-pedido').value = '';
-      $('#agenda-data').value = '';
-      $('#agenda-descricao').value = '';
-      blocoPedido.style.display = 'none';
-    });
-  }
-
-  btnSalvar.addEventListener('click', () => {
-    const tipo = selectTipo.value;
-    const data = $('#agenda-data').value;
-    const desc = $('#agenda-descricao').value.trim();
-    const pedidoRef = $('#agenda-pedido').value.trim();
-
-    if (!tipo) {
-      alert('Selecione o tipo de compromisso.');
-      return;
-    }
-    if (!data) {
-      alert('Selecione a data.');
-      return;
-    }
-
-    const novo = {
-      id: Date.now(),
-      tipo,
-      data,
-      desc,
-      pedidoRef
-    };
-
-    agendaItens.push(novo);
-    saveData(STORAGE.agenda, agendaItens);
-    alert('Compromisso registrado.');
-    $('#agenda-descricao').value = '';
-    $('#agenda-pedido').value = '';
-  });
-}
-
-let agendaDataAtual = new Date();
-
-function mesmaDataStr(dateStr, y, m, d) {
-  if (!dateStr) return false;
-  const [yy, mm, dd] = dateStr.split('-').map(Number);
-  return yy === y && mm === m + 1 && dd === d;
-}
-
-function renderAgendaDiaDetalhes(dateStr) {
-  const header = $('#agenda-dia-header');
-  const lista = $('#agenda-dia-lista');
-  if (!header || !lista) return;
-
-  const itensDia = agendaItens.filter((a) => a.data === dateStr);
-  header.textContent = itensDia.length
-    ? `Compromissos em ${formatDateLabel(dateStr)}`
-    : `Nenhum compromisso em ${formatDateLabel(dateStr)}.`;
-
-  if (!itensDia.length) {
-    lista.innerHTML = '';
-    return;
-  }
-
-  lista.innerHTML = itensDia
-    .map(
-      (a) => `
-      <div class="item-card">
-        <div class="item-row">
-          <span class="item-title">${
-            a.tipo === 'producao'
-              ? 'Produção'
-              : a.tipo === 'entrega'
-              ? 'Entrega'
-              : 'Outros'
-          }</span>
-          <span class="item-meta">${
-            a.pedidoRef ? 'Pedido: ' + a.pedidoRef : ''
-          }</span>
-        </div>
-        <div class="item-meta">${a.desc || ''}</div>
-      </div>
-    `
-    )
-    .join('');
-}
-
-function renderAgendaCalendario() {
-  const grid = $('#agenda-grid');
-  const label = $('#agenda-month-label');
-  if (!grid || !label) return;
-
-  grid.innerHTML = '';
-
-  const ano = agendaDataAtual.getFullYear();
-  const mes = agendaDataAtual.getMonth(); // 0-11
-
-  const nomesMes = [
-    'janeiro',
-    'fevereiro',
-    'março',
-    'abril',
-    'maio',
-    'junho',
-    'julho',
-    'agosto',
-    'setembro',
-    'outubro',
-    'novembro',
-    'dezembro'
-  ];
-
-  label.textContent = `${nomesMes[mes]} / ${ano}`;
-
-  const primeiroDia = new Date(ano, mes, 1);
-  const diaSemanaInicio = primeiroDia.getDay(); // 0-dom
-
-  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-
-  for (let i = 0; i < diaSemanaInicio; i++) {
-    const div = document.createElement('div');
-    div.className = 'agenda-day empty';
-    grid.appendChild(div);
-  }
-
-  const hoje = new Date();
-  const hojeStr = `${hoje.getFullYear()}-${String(
-    hoje.getMonth() + 1
-  ).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-
-  for (let dia = 1; dia <= diasNoMes; dia++) {
-    const dateStr = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(
-      dia
-    ).padStart(2, '0')}`;
-
-    const div = document.createElement('div');
-    div.className = 'agenda-day';
-    div.dataset.date = dateStr;
-
-    const spanNum = document.createElement('div');
-    spanNum.className = 'agenda-day-number';
-    spanNum.textContent = dia.toString();
-    div.appendChild(spanNum);
-
-    if (dateStr === hojeStr) {
-      div.classList.add('agenda-today');
-    }
-
-    const itensDia = agendaItens.filter((a) =>
-      mesmaDataStr(a.data, ano, mes, dia)
-    );
-    if (itensDia.length) {
-      if (itensDia.some((a) => a.tipo === 'producao')) {
-        div.classList.add('agenda-producao');
-      }
-      if (itensDia.some((a) => a.tipo === 'entrega')) {
-        div.classList.add('agenda-entrega');
-      }
-      if (itensDia.some((a) => a.tipo === 'outros')) {
-        div.classList.add('agenda-outros');
-      }
-    }
-
-    div.addEventListener('click', () => {
-      renderAgendaDiaDetalhes(dateStr);
-    });
-
-    grid.appendChild(div);
-  }
-}
-
-function initAgendaVisual() {
-  const btnPrev = $('#agenda-prev');
-  const btnNext = $('#agenda-next');
-
-  if (btnPrev) {
-    btnPrev.addEventListener('click', () => {
-      agendaDataAtual.setMonth(agendaDataAtual.getMonth() - 1);
-      renderAgendaCalendario();
-    });
-  }
-  if (btnNext) {
-    btnNext.addEventListener('click', () => {
-      agendaDataAtual.setMonth(agendaDataAtual.getMonth() + 1);
-      renderAgendaCalendario();
-    });
-  }
-
-  renderAgendaCalendario();
-}
-
-// ---------- INICIALIZAÇÃO GLOBAL ----------
-document.addEventListener('DOMContentLoaded', () => {
-  // carrega dados do localStorage
-  clientes = loadData(STORAGE.clientes);
-  mpList = loadData(STORAGE.mp);
-  fornecedores = loadData(STORAGE.fornecedores);
-  produtos = loadData(STORAGE.produtos);
-  pedidos = loadData(STORAGE.pedidos);
-  lancamentos = loadData(STORAGE.lancamentos);
-  agendaItens = loadData(STORAGE.agenda);
-
-  initNavigation();
-  initClientes();
-  initMp();
-  initFornecedores();
-  initProdutos();
-  initNovoPedido();
-  renderPedidosLista();
-  renderStatusPedidos();
-  renderVendasResumo();
-  initEstoque();
-  initFinancas();
-  initAgendaRegistro();
-  initAgendaVisual();
-});
+        lancs.push({
+          id: uid(),
+          tipo,
+          pedidoId,
