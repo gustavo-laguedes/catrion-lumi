@@ -14,11 +14,14 @@
 
 /* Logo Lumi */
 .logo-lumi {
-  height: 42px;       /* tamanho confortável */
+  height: 28px;          /* reduzido de 42px para 28px */
+  max-height: 28px;
   width: auto;
+  max-width: 120px;      /* impede que fique comprido demais */
   object-fit: contain;
   display: block;
 }
+
 
 /* Box onde aparecerá o logo do cliente */
 .client-logo-box {
