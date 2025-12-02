@@ -1,1 +1,45 @@
+/* Topbar */
+.lumi-topbar {
+  width: 100%;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #e5e5e5;
+  padding: 0 22px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Logo Lumi */
+.logo-lumi {
+  height: 42px;       /* tamanho confortável */
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Box onde aparecerá o logo do cliente */
+.client-logo-box {
+  height: 42px;       /* mesma altura que o Lumi */
+  width: 42px;
+  border-radius: 10px;
+  border: 1px dashed #bbb;
+  color: #777;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  text-transform: uppercase;
+  background: #fafafa;
+  cursor: default;
+}
+
+.client-logo-box img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
 
