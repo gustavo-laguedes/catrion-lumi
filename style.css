@@ -1,8 +1,37 @@
-/* Topbar */
+/* RESET */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: linear-gradient(
+  135deg,
+  #f0e8ff 0%,
+  #dcd0ff 40%,
+  #c3b4ff 100%
+);
+  background-attachment: fixed;
+  color: #222;
+}
+
+
+/* TOPBAR */
 .lumi-topbar {
   width: 100%;
   height: 70px;
-  background: rgba(255, 255, 255, 0.85);
+  background: #ffffffcc;
   backdrop-filter: blur(6px);
   border-bottom: 1px solid #e5e5e5;
   padding: 0 22px;
@@ -12,37 +41,1980 @@
   align-items: center;
 }
 
-/* Logo Lumi */
 .logo-lumi {
-  height: 28px;          /* reduzido de 42px para 28px */
-  max-height: 28px;
+  height: 48px;
+  max-height: 48px;
   width: auto;
-  max-width: 120px;      /* impede que fique comprido demais */
+  max-width: 120px;
   object-fit: contain;
-  display: block;
 }
 
-
-/* Box onde aparecerá o logo do cliente */
 .client-logo-box {
-  height: 42px;       /* mesma altura que o Lumi */
-  width: 42px;
-  border-radius: 10px;
+  height: 28px;
+  width: 90px;
   border: 1px dashed #bbb;
-  color: #777;
+  border-radius: 10px;
+  background: #fafafa;
+
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 10px;
+  color: #777;
   text-transform: uppercase;
-  background: #fafafa;
+}
+
+/* ÁREA PRINCIPAL – CARD CENTRALIZADO, MAS SEM FICAR TÃO BAIXO */
+.lumi-main {
+  width: 100%;
+  min-height: calc(100vh - 70px);
+
+  display: flex;
+  flex-direction: column;   /* um card em cima do outro */
+  align-items: center;      /* centraliza na horizontal */
+  justify-content: flex-start;
+  padding: 40px 20px;
+  gap: 24px;                /* espaço entre Registros e Cadastro */
+}
+
+
+/* CARD DOS CADASTROS */
+.card-cadastros,
+.card-registros,
+.card-consulta {
+  background: #fff;
+  border-radius: 18px;
+  padding: 26px 32px 30px 32px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  border: 1px solid #e6e6e6;
+
+  min-width: 520px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+
+
+/* TÍTULO */
+.card-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+/* SUBTÍTULO */
+.card-subtitle {
+  margin: 0;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: #777;
+}
+
+/* GRADE DOS BOTÕES – EM LINHA HORIZONTAL */
+.cadastro-grid-cadastros,
+.registros-grid,
+.consulta-grid {
+  display: flex;
+  gap: 18px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+
+
+/* BOTÃO */
+.btn-cadastro {
+  width: 160px;       /* MAIS COMPRIDO */
+  height: 90px;       /* MAIS BAIXO */
+  background: #f7f7f9;
+  border-radius: 14px;
+  border: 1px solid #d3d3d3;
+  cursor: pointer;
+  transition: 0.2s ease;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding-top: 8px;
+}
+
+/* TEXTO DO BOTÃO */
+.btn-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+/* ÁREA DO ÍCONE */
+.btn-icon {
+  width: 50px;
+  height: 40px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* ÍCONES DOS QUATRO BOTÕES */
+
+/* 1 – CLIENTE */
+/* Ícones do card de CADASTROS (não mexe nos Registros) */
+
+/* 1 – CLIENTE */
+.cadastro-grid-cadastros .btn-cadastro:nth-child(1) .btn-icon {
+  background-image: url("assets/icone-cliente.png");
+}
+
+/* 2 – PRODUTO */
+.cadastro-grid-cadastros .btn-cadastro:nth-child(2) .btn-icon {
+  background-image: url("assets/icone-produtos.png");
+}
+
+/* 3 – MATÉRIA PRIMA */
+.cadastro-grid-cadastros .btn-cadastro:nth-child(3) .btn-icon {
+  background-image: url("assets/icone-materiaprima.png");
+}
+
+/* 4 – FORNECEDOR */
+.cadastro-grid-cadastros .btn-cadastro:nth-child(4) .btn-icon {
+  background-image: url("assets/icone-fornecedor.png");
+}
+
+/* ÍCONES DO CARD DE REGISTROS */
+
+/* 1 – NOVO PEDIDO */
+.registros-grid .btn-cadastro:nth-child(1) .btn-icon {
+  background-image: url("assets/icone-novopedido.png");
+}
+
+/* 2 – FINANÇAS */
+.registros-grid .btn-cadastro:nth-child(2) .btn-icon {
+  background-image: url("assets/icone-finanças.png");
+}
+
+/* 3 – CALENDÁRIO */
+.registros-grid .btn-cadastro:nth-child(3) .btn-icon {
+  background-image: url("assets/icone-calendário.png");
+}
+
+/* 4 – STATUS */
+.registros-grid .btn-cadastro:nth-child(4) .btn-icon {
+  background-image: url("assets/icone-status.png");
+}
+
+/* ÍCONES DO CARD DE CONSULTA */
+
+/* 1 – ESTOQUE */
+.consulta-grid .btn-cadastro:nth-child(1) .btn-icon {
+  background-image: url("assets/icone-estoque.png");
+}
+
+/* 2 – FINANÇAS */
+.consulta-grid .btn-cadastro:nth-child(2) .btn-icon {
+  background-image: url("assets/icone-finanças2.png");
+}
+
+/* 3 – RELATÓRIOS */
+.consulta-grid .btn-cadastro:nth-child(3) .btn-icon {
+  background-image: url("assets/icone-relatórios.png");
+}
+
+/* 4 – CONFIGURAÇÕES */
+.consulta-grid .btn-cadastro:nth-child(4) .btn-icon {
+  background-image: url("assets/icone-configurações.png");
+}
+
+
+/* HOVER */
+.btn-cadastro:hover {
+  background: #ececff;
+  border-color: #c0c0ff;
+}
+
+/* BARRA DE NAVEGAÇÃO FLUTUANTE */
+.bottom-nav {
+  position: fixed;
+  bottom: 22px;                 /* sobe a barra */
+  left: 50%;
+  transform: translateX(-50%);  /* centraliza */
+
+  background: #ffffff;
+  border-radius: 26px;           /* bordas bem arredondadas */
+  padding: 10px 22px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;                     /* espaço entre itens */
+
+  z-index: 999;
+}
+
+/* ITENS DA BARRA */
+.nav-item {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #8d5bff;
+  cursor: pointer;
+
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: 0.2s ease;
+}
+
+/* ITEM SELECIONADO (PILL) */
+.nav-item.active {
+  background: #8d5bff;
+  color: #ffffff;
+}
+
+/* HOVER */
+.nav-item:hover {
+  opacity: 0.85;
+}
+
+.lumi-footer {
+  width: 100%;
+  text-align: center;
+  font-size: 15px;
+  color: #999;              /* bem clarinho */
+  padding-bottom: 110px;     /* espaço pra não encostar na nav flutuante */
+  margin-top: 5px;
+  pointer-events: none;     /* o usuário não clica sem querer */
+  user-select: none;        /* evita seleção acidental */
+}
+
+/* --- CONTROLE DE TELAS (HOME x CLIENTES) --- */
+.screen {
+  display: none;
+  width: 100%;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+/* A home continua usando os cards em coluna */
+.home-screen {
+  /* se quiser deixar estilos aqui, pode, mas NÃO coloca display */
+  /* por exemplo: gap, padding, etc, mas sem display */
+}
+
+
+/* --- TELA DE CLIENTES --- */
+
+.clientes-screen {
+  align-items: center;
+}
+
+.clientes-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px 28px 32px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  border: 1px solid #e6e6e6;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Títulos dos cards de listagem (Clientes, Produtos, Matérias, Fornecedores) */
+.clientes-header h2,
+.produtos-header h2,
+.materias-header h2,
+.fornecedores-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.clientes-header p,
+.produtos-header p,
+.materias-header p,
+.fornecedores-header p {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: #777;
+}
+
+
+/* Corpo: lista + barra de letras */
+.clientes-body {
+  display: flex;
+  flex-direction: row-reverse;  /* joga a barra de letras pra esquerda */
+  align-items: stretch;
+  gap: 16px;
+}
+
+
+/* Área da lista (mais pra esquerda) */
+.clientes-list-container {
+  flex: 1;
+  padding: 4px 0;
+  max-height: 320px;
+  overflow-y: auto;
+  background: transparent;   /* sem fundo */
+  border: none;              /* sem borda */
+  border-radius: 0;          /* sem arredondado */
+}
+
+/* Só o texto, como se fosse um aviso simples */
+.clientes-list-empty {
+  font-size: 13px;
+  color: #888;
+}
+
+
+/* (Mais pra frente, quando tiver lista de fato) */
+.cliente-item {
+  padding: 8px 6px;
+  border-bottom: 1px solid #eceaf8;
+  font-size: 14px;
+}
+
+/* Barra de alfabeto na direita */
+.clientes-alpha-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: #f2edff;
+  color: #8d5bff;
+  font-size: 10px;
+  user-select: none;
+}
+
+.clientes-alpha-bar span {
   cursor: default;
 }
 
-.client-logo-box img {
-  height: 100%;
+/* Botão flutuante de adicionar cliente */
+.fab-add-cliente {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #8d5bff;
+  color: #ffffff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+.fab-add-cliente:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+}
+
+/* --- MODAL DE NOVO CLIENTE --- */
+
+.cliente-modal-overlay,
+.produto-modal-overlay,
+.materia-modal-overlay,
+.fornecedor-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cliente-modal-overlay.open,
+.produto-modal-overlay.open,
+.materia-modal-overlay.open,
+.fornecedor-modal-overlay.open {
+  display: flex;
+}
+
+
+.cliente-modal {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 90vh;     /* idem */
+  overflow-y: auto;     /* idem */
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+
+.cliente-modal h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.cliente-modal p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+/* --- MODAL DE DETALHES DO CLIENTE --- */
+
+.cliente-detalhe-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;              /* fica escondido até ganhar a classe .open */
+  align-items: center;        /* centraliza vertical */
+  justify-content: center;    /* centraliza horizontal */
+  z-index: 1100;
+}
+
+.cliente-detalhe-overlay.open {
+  display: flex;              /* vira um flex container quando abre */
+}
+
+.cliente-detalhe-modal {
+  position: relative;
+  margin: 0;                  /* garante que não tem margem jogando pra esquerda */
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+.cliente-detalhe-modal h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.cliente-detalhe-subtitle {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+.cliente-detalhe-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+.cliente-detalhe-foto {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid #dcd0ff;
+  background-color: #f7f3ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-bottom: 14px;
+}
+
+.cliente-detalhe-modal input[disabled] {
+  background: #f5f5f7;
+  color: #888;
+}
+
+.cliente-detalhe-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.cliente-detalhe-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* --- MODAL DE DETALHES DO PRODUTO --- */
+
+.produto-detalhe-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.produto-detalhe-overlay.open {
+  display: flex;
+}
+
+.produto-detalhe-modal {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+.produto-detalhe-modal h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.produto-detalhe-subtitle {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+.produto-detalhe-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+.produto-detalhe-foto {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid #dcd0ff;
+  background-color: #f7f3ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-bottom: 14px;
+}
+
+.produto-detalhe-modal input[disabled] {
+  background: #f5f5f7;
+  color: #888;
+}
+
+/* select desabilitado no detalhe do produto
+   com a mesma cara dos outros campos desabilitados */
+.produto-detalhe-modal select[disabled] {
+  background-color: #f5f5f7;
+  color: #888;
+  border: 1px solid #d6d6e8;
+  cursor: not-allowed;
+  opacity: 1;              /* tira aquele esbranquiçado padrão do disabled */
+}
+
+
+.produto-detalhe-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.produto-detalhe-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- MODAL DE DETALHES DA MATÉRIA-PRIMA --- */
+
+.materia-detalhe-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.materia-detalhe-overlay.open {
+  display: flex;
+}
+
+.materia-detalhe-modal {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+.materia-detalhe-modal h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.materia-detalhe-subtitle {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+.materia-detalhe-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+.materia-detalhe-modal input[disabled] {
+  background: #f5f5f7;
+  color: #888;
+}
+
+/* FOTO DO DETALHE DA MATÉRIA-PRIMA — IGUAL CLIENTE/PRODUTO */
+.materia-detalhe-foto {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid #dcd0ff;
+  background-color: #f7f3ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-bottom: 14px;
+}
+
+.materia-detalhe-foto.empty {
+  background-image: none;
+}
+
+
+.materia-detalhe-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.materia-detalhe-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- MODAL DE DETALHES DO FORNECEDOR --- */
+
+.fornecedor-detalhe-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.fornecedor-detalhe-overlay.open {
+  display: flex;
+}
+
+.fornecedor-detalhe-modal {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+.fornecedor-detalhe-modal h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.fornecedor-detalhe-subtitle {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+.fornecedor-detalhe-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+/* inputs desabilitados no detalhe do fornecedor */
+.fornecedor-detalhe-modal input[disabled] {
+  background-color: #f5f5f7;
+  color: #888;
+  border: 1px solid #d6d6e8;
+  cursor: not-allowed;
+}
+
+/* select desabilitado no detalhe do fornecedor
+   forçando mesma cor e tirando o "apagado" do disabled padrão */
+.fornecedor-detalhe-modal select[disabled] {
+  background-color: #f5f5f7;
+  color: #888;
+  border: 1px solid #d6d6e8;
+  cursor: not-allowed;
+  opacity: 1;               /* aqui é o truque pra não ficar mais claro */
+}
+
+
+
+.fornecedor-detalhe-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.fornecedor-detalhe-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* Botão X de fechar */
+.cliente-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+/* Espaço extra nos labels do detalhe de fornecedor */
+.fornecedor-detalhe-modal label[for="detalhe-fornecedor-tipo"],
+.fornecedor-detalhe-modal label[for="detalhe-fornecedor-endereco"] {
+  display: inline-block;
+  margin-top: 8px; /* mesmo padrão visual dos outros */
+}
+
+
+/* Formulário */
+.cliente-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-group label {
+  font-size: 13px;
+  color: #444;
+}
+
+/* altura idêntica para input e select */
+.field-group input,
+.field-group select {
+  height: 36px;              /* força mesma altura */
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d6d6e8;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+}
+
+
+.field-group select:focus {
+  border-color: #8d5bff;
+  box-shadow: 0 0 0 1px rgba(141,91,255,0.15);
+}
+
+
+.field-group input:focus {
+  border-color: #8d5bff;
+  box-shadow: 0 0 0 1px rgba(141,91,255,0.15);
+}
+
+/* Linha lado a lado para Cidade + Estado */
+.field-row {
+  display: flex;
+  gap: 14px;                /* espaço entre Cidade e Estado */
+  padding-right: 6px;       /* evita do Estado colar na borda direita */
+  margin-top: 10px;         /* aumenta a distância em relação ao campo de cima */
+}
+
+.field-row .field-group {
+  flex: 1;
+}
+
+/* Ajuste específico para o campo Estado */
+.field-row .field-group:last-child input {
+  max-width: 100px;         /* diminui um pouco pra não encostar na borda */
+}
+
+
+
+/* Botão salvar */
+.form-actions {
+  display: flex;
+  justify-content: center;  /* centraliza o botão */
+  margin-top: 12px;
+}
+
+/* Grupo da foto: input + preview lado a lado */
+.field-group-foto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Linha onde fica input + bolinha */
+.foto-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Preview redondinho */
+.cliente-foto-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #dcd0ff;
+  background-color: #f7f3ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Foto da matéria-prima */
+.field-group-foto-materia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.foto-input-wrapper-materia {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.materia-foto-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #dcd0ff;
+  background-color: #f7f3ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.materia-foto-preview.empty {
+  background-image: none;
+}
+
+.materia-form input[type="file"] {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #ccb7ff;
+  background: #f5f2ff;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
+
+.materia-form input[type="file"]::-webkit-file-upload-button,
+.materia-form input[type="file"]::file-selector-button {
+  background: #8d5bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+
+/* estado vazio sem o '?' */
+.cliente-foto-preview.empty {
+  background-image: none;
+}
+
+
+
+.btn-primary {
+  background: #8d5bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+/* Estilo especial para o input de arquivo do cliente */
+.cliente-form input[type="file"] {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #ccb7ff;
+  background: #f5f2ff;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
+
+.cliente-form input[type="file"]::-webkit-file-upload-button {
+  background: #8d5bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.cliente-form input[type="file"]::file-selector-button {
+  /* padrão moderno (Firefox/Edge/Chrome novos) */
+  background: #8d5bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* --- MODAL DE PRODUTO --- */
+
+.cliente-modal-overlay,
+.produto-modal-overlay,
+.materia-modal-overlay,
+.fornecedor-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cliente-modal-overlay.open,
+.produto-modal-overlay.open,
+.materia-modal-overlay.open,
+.fornecedor-modal-overlay.open {
+  display: flex;
+}
+
+
+.produto-modal {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 460px;
+  max-width: 95vw;
+  max-height: 90vh;      /* limite na altura da janela */
+  overflow-y: auto;      /* rolagem interna */
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+
+.produto-modal h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.produto-modal p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+.produto-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+.produto-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Foto do produto (estrutura igual à do cliente, mas com classes próprias) */
+.field-group-foto-produto {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.foto-input-wrapper-produto {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.produto-foto-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid #dcd0ff;
+  background-color: #f7f3ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.produto-foto-preview.empty {
+  background-image: none;
+}
+
+/* Input file do produto (igual estilo do cliente) */
+.produto-form input[type="file"] {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #ccb7ff;
+  background: #f5f2ff;
+  font-size: 13px;
+  cursor: pointer;
+  color: #555;
+}
+
+.produto-form input[type="file"]::-webkit-file-upload-button,
+.produto-form input[type="file"]::file-selector-button {
+  background: #8d5bff;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* Divisores */
+.produto-divider {
+  border: 0;
+  border-top: 1px solid #ece9ff;
+  margin: 12px 0;
+}
+
+.produto-section-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+}
+
+/* Container das matérias-primas */
+.produto-mp-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* cabeçalho do bloco de MP: linha + botão X */
+.produto-mp-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* Botão X nos blocos de matéria-prima (cadastro e detalhe) */
+.produto-modal .mp-remove-btn,
+.produto-detalhe-modal .mp-remove-btn-detalhe {
+  position: absolute;
+  top: -10px;              /* sobe pra encostar na borda da caixinha */
+  right: -10px;            /* joga um pouco pra fora à direita */
+
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e0dafb;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #777;
+  cursor: pointer;
+  line-height: 1;
+  transition: 0.15s ease-out;
+}
+
+.produto-modal .mp-remove-btn:hover,
+.produto-detalhe-modal .mp-remove-btn-detalhe:hover {
+  background: #f5f0ff;
+  color: #444;
+}
+
+
+
+
+
+
+/* Cada bloco de matéria-prima */
+.produto-mp-item {
+  position: relative;
+  padding: 10px 10px;
+  border-radius: 12px;
+  background: #f7f5ff;
+  border: 1px solid #e0dafb;
+}
+
+.produto-mp-row {
+  display: flex;
+  gap: 10px;
+}
+
+.produto-mp-row .field-group {
+  flex: 1;
+}
+
+.produto-mp-row .field-group.small {
+  max-width: 120px;
+}
+
+/* Segunda linha (Qtd + Valor) desce um pouquinho inteira */
+.produto-mp-item .produto-mp-row:nth-of-type(2) {
+  margin-top: 6px;
+}
+
+/* Campo de valor da MP (agora sem margem própria) */
+.produto-mp-valor-group {
+  margin-top: 0;
+}
+
+
+/* Botão de adicionar MP */
+/* mesmo estilo para o botão do cadastro e para o botão do detalhe */
+.btn-secondary,
+.mp-add-btn {
+  margin-top: 6px;
+  background: #f0ebff;
+  color: #6f4fe8;
+  border-radius: 999px;
+  border: 1px solid #d3c7ff;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.btn-secondary:hover,
+.mp-add-btn:hover {
+  background: #e5dcff;
+}
+
+
+/* Resumo de custo e lucro */
+.produto-resumo {
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.produto-resumo strong {
+  color: #333;
+}
+
+.materia-modal {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+.fornecedor-modal {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 22px 24px 20px;
+  width: 420px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+
+
+/* título/subtítulo reaproveitam .cliente-modal h3 / p */
+.materia-modal h3,
+.fornecedor-modal h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.materia-modal p,
+.fornecedor-modal p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #777;
+}
+
+.materia-modal-close,
+.fornecedor-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #999;
+}
+
+
+
+/* containers extras do fornecedor (internet/físico) */
+.fornecedor-extra {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #ece9ff;
+  display: none;
+}
+
+.fornecedor-extra.active {
+  display: block;
+}
+
+/* Ajuste de espaçamento vertical entre os fields dos modais de matéria-prima e fornecedor */
+.materia-modal .field-group,
+.fornecedor-modal .field-group {
+  margin-top: 10px;          /* empurra para baixo o bloco */
+}
+
+.materia-modal .field-group:first-child,
+.fornecedor-modal .field-group:first-child {
+  margin-top: 0;             /* o primeiro item não precisa de margem */
+}
+
+/* No modal de fornecedor, dentro da linha Cidade/Estado,
+   a margem vem da .field-row, não dos .field-group */
+.fornecedor-modal .field-row .field-group {
+  margin-top: 0;
+}
+
+
+/* --- TELA DE PRODUTOS --- */
+
+.produtos-screen,
+.materias-screen,
+.fornecedores-screen {
+  align-items: center;
+}
+
+.materias-body,
+.fornecedores-body {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.materias-alpha-bar,
+.fornecedores-alpha-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: #f2edff;
+  color: #8d5bff;
+  font-size: 10px;
+  user-select: none;
+}
+
+.materias-alpha-bar span,
+.fornecedores-alpha-bar span {
+  cursor: default;
+}
+
+.materias-list-container,
+.fornecedores-list-container {
+  flex: 1;
+  padding: 4px 0;
+  max-height: 320px;
+  overflow-y: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.materias-list-empty,
+.fornecedores-list-empty {
+  font-size: 13px;
+  color: #888;
+}
+
+
+
+.clientes-card,
+.produtos-card,
+.materias-card,
+.fornecedores-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px 28px 32px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  border: 1px solid #e6e6e6;
   width: 100%;
-  object-fit: contain;
+  max-width: 900px;
+}
+
+
+.produtos-body {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+}
+
+/* Barra de letras à esquerda */
+.produtos-alpha-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  background: #f2edff;
+  color: #8d5bff;
+  font-size: 10px;
+  user-select: none;
+}
+
+.produtos-alpha-bar span {
+  cursor: default;
+}
+
+/* Lista de produtos */
+.produtos-list-container {
+  flex: 1;
+  padding: 4px 0;
+  max-height: 320px;
+  overflow-y: auto;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.produtos-list-empty {
+  font-size: 13px;
+  color: #888;
+}
+
+/* Botão flutuante + de produto */
+.fab-add-cliente,
+.fab-add-produto,
+.fab-add-materia,
+.fab-add-fornecedor {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #8d5bff;
+  color: #ffffff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+.fab-add-cliente:hover,
+.fab-add-produto:hover,
+.fab-add-materia:hover,
+.fab-add-fornecedor:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+}
+
+.materia-form .form-actions,
+.fornecedor-form .form-actions {
+  margin-top: 24px !important;
+}
+
+/* Itens de lista de clientes/produtos com avatar + nome */
+.cliente-item,
+.produto-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px solid #eceaf8;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Avatar redondinho (foto ou inicial) */
+.cliente-avatar,
+.produto-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #d4c9ff;
+  background-color: #f4f0ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #7b5cff;  /* cor da inicial */
+}
+
+/* Classe opcional pra quando tiver foto (só estética) */
+.cliente-avatar.has-foto,
+.produto-avatar.has-foto {
+  background-color: transparent;
+  border-color: #cbbfff;
+}
+
+/* Botões de edição (caneta) — alinhados com o botão + */
+.fab-edit-cliente,
+.fab-edit-produto,
+.fab-edit-materia,
+.fab-edit-fornecedor {
+  position: absolute;
+  bottom: 22px;       /* MESMA ALTURA DO + */
+  right: 82px;        /* LADO ESQUERDO DO + COM 12PX DE ESPAÇO */
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: #3b3b3b;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s ease;
+}
+
+.fab-edit-cliente:hover,
+.fab-edit-produto:hover,
+.fab-edit-materia:hover,
+.fab-edit-fornecedor:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+}
+
+.lista-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 6px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.item-foto {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-color: #ddd;
+}
+
+.item-nome {
+  font-size: 15px;
+  color: #333;
+  flex: 1;
+}
+
+.item-valor {
+  font-size: 14px;
+  color: #7a44ff;
+  margin-left: auto;
+}
+
+.item-delete-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ff4f4f;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: none;            /* só aparece no modo edição */
+  align-items: center;
+  justify-content: center;
+  line-height: 0;           /* ajuda a centralizar verticalmente */
+  padding-bottom: 1px;      /* micro ajuste do traço */
+}
+
+.item-delete-btn.show {
+  display: flex;
+}
+
+/* =========================
+   TELA DE NOVO PEDIDO
+   ========================= */
+
+.pedidos-screen {
+  align-items: center;
+}
+
+.pedido-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px 28px 32px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  border: 1px solid #e6e6e6;
+  width: 100%;
+  max-width: 950px;
+}
+
+.pedido-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+}
+
+.pedido-header p {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: #777;
+}
+
+.pedido-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pedido-bloco h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #444;
+}
+
+.pedido-bloco-subtitle {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: #888;
+}
+
+.pedido-divider {
+  border: 0;
+  border-top: 1px solid #ece9ff;
+  margin: 8px 0;
+}
+
+/* sugestões genéricas (cliente/produto) */
+.pedido-sugestoes {
+  margin-top: 6px;
   border-radius: 10px;
+  border: 1px solid #e0dafb;
+  background: #f7f5ff;
+  max-height: 140px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.pedido-sugestao-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #ece9ff;
+}
+
+.pedido-sugestao-item:last-child {
+  border-bottom: none;
+}
+
+.pedido-sugestao-item:hover {
+  background: #ece6ff;
+}
+
+/* resumo do cliente */
+.pedido-cliente-resumo {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #e0dafb;
+  background: #f9f7ff;
+  font-size: 13px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.pedido-cliente-resumo.vazio {
+  justify-content: flex-start;
+  color: #888;
+}
+
+.pedido-cliente-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #d4c9ff;
+  background-color: #f4f0ff;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.pedido-cliente-dados {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* produtos do pedido */
+.pedido-produtos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* cada bloco de produto dentro do pedido */
+.pedido-produto-bloco {
+  position: relative; /* ADICIONAR AQUI */
+  padding: 10px 10px 10px;
+  border-radius: 12px;
+  background: #f7f5ff;
+  border: 1px solid #e0dafb;
+}
+
+
+.pedido-produto-header {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.pedido-produto-header .field-group {
+  flex: 1;
+}
+
+.pedido-produto-preco {
+  font-size: 13px;
+  color: #7a44ff;
+  min-width: 120px;
+}
+
+.pedido-produto-remove {
+  position: absolute;      /* MUDOU */
+  top: -10px;              /* MUDOU */
+  right: -10px;            /* MUDOU */
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: #ff4f4f;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.18); /* opcional, mas pode manter */
+}
+
+
+/* tabela de MPs do produto escolhido */
+.pedido-produto-mps {
+  margin-top: 8px;
+  border-radius: 10px;
+  border: 1px solid #e0dafb;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.pedido-produto-mps table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.pedido-produto-mps th,
+.pedido-produto-mps td {
+  padding: 4px 6px;
+  border-bottom: 1px solid #f0ecff;
+  text-align: left;
+}
+
+.pedido-produto-mps th {
+  background: #f5f1ff;
+  font-weight: 600;
+  color: #555;
+}
+
+.pedido-produto-mps tr:last-child td {
+  border-bottom: none;
+}
+
+/* resumo financeiro */
+.pedido-resumo {
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pedido-resumo strong {
+  color: #333;
+}
+
+/* =========================
+   AJUSTES (ACRÉSCIMOS / DESCONTOS)
+   ========================= */
+
+.pedido-bloco-ajustes {
+  /* ele já é um .pedido-bloco, então aqui é só um ajuste leve se quiser */
+  /* se não quiser nada extra, pode até deixar vazio */
+}
+
+/* container que guarda os “cards” de ajuste */
+.pedido-ajustes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* cada ajuste vira um card igual aos blocos de produto */
+.pedido-ajuste-item {
+  position: relative;                 /* ancora o botão - */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7f5ff;
+  border: 1px solid #e0dafb;
+}
+
+/* aqui NÃO queremos aquela margem padrão dos field-group dos modais */
+.pedido-ajuste-item .field-group {
+  margin-top: 0;
+}
+
+/* ordem e tamanhos: [tipo] [valor] [descrição] */
+.pedido-ajuste-tipo-group {
+  width: 150px;        /* select Acréscimo/Desconto */
+}
+
+.pedido-ajuste-valor-group {
+  width: 130px;        /* input de valor */
+}
+
+.pedido-ajuste-descricao-group {
+  flex: 1;             /* descrição ocupa o resto */
+}
+
+/* IMPORTANTE: não mexemos em input/select aqui
+   pra eles usarem o mesmo estilo global de .field-group
+   (altura 36px, padding 8x10, etc.) */
+
+/* NÃO redefina .pedido-ajuste-remove aqui.
+   Deixa só a .pedido-produto-remove mandar no visual,
+   porque é exatamente o que você quer: bolinha vermelha
+   flutuando no canto superior direito. */
+
+
+/* ações do pedido */
+.pedido-acoes {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ações do pedido */
+.pedido-acoes {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.pedido-btn-print {
+  background: #f5f2ff;
+  border-color: #d3c7ff;
+}
+
+/* =========================
+   AJUSTES (ACRÉSCIMOS / DESCONTOS) – VERSÃO PRODUTO
+   ========================= */
+
+/* container com as linhas de ajuste */
+.pedido-ajustes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* cada ajuste vira um "card" igual ao produto */
+.pedido-ajuste-item {
+  position: relative;                 /* pra prender o botão - no canto */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7f5ff;
+  border: 1px solid #e0dafb;
+}
+
+/* os groups aqui não precisam de margem extra */
+.pedido-ajuste-item .field-group {
+  margin-top: 0;
+}
+
+/* ORDEM / TAMANHO DOS CAMPOS
+   [ tipo ] [ valor ] [ descrição ]
+*/
+.pedido-ajuste-tipo-group {
+  max-width: 160px;
+}
+
+.pedido-ajuste-valor-group {
+  max-width: 130px;
+}
+
+.pedido-ajuste-descricao-group {
+  flex: 1;
+}
+
+/* inputs e selects com a mesma cara do resto do sistema */
+.pedido-ajuste-item select,
+.pedido-ajuste-item input[type="text"],
+.pedido-ajuste-item input[type="number"] {
+  height: 36px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d6d6e8;
+  font-size: 14px;
+  outline: none;
+  background: #fff;
+}
+
+.pedido-ajuste-item select:focus,
+.pedido-ajuste-item input[type="text"]:focus,
+.pedido-ajuste-item input[type="number"]:focus {
+  border-color: #8d5bff;
+  box-shadow: 0 0 0 1px rgba(141,91,255,0.15);
+}
+
+/* botão de remover ajuste – igual ao de produto */
+.pedido-ajuste-remove {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: #ff4f4f;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.18);
+  line-height: 1;
 }
 
