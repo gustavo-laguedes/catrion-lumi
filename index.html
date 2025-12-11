@@ -1,12 +1,885 @@
-<header class="lumi-topbar">
-  <div class="topbar-left">
-    <img src="assets/lumi-logo.png" alt="Logo Lumi" class="logo-lumi">
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Lumi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Topbar mínima -->
+  <header class="lumi-topbar">
+    <div class="topbar-left">
+      <img src="assets/lumi-logo.png" alt="Logo Lumi" class="logo-lumi">
+    </div>
+
+    <div class="topbar-right">
+      <div class="client-logo-box">
+        <span>logo cliente</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Área principal -->
+  <main class="lumi-main">
+  <!-- TELA HOME (3 CARDS) -->
+  <section id="home-screen" class="screen active home-screen">
+    <section class="card-registros">
+      <h2 class="card-title">Registros</h2>
+      <p class="card-subtitle">
+        Registre novos pedidos, controle financeiro, calendário e status de pedidos.
+      </p>
+
+      <div class="registros-grid">
+        <button class="btn-cadastro" id="btn-home-novo-pedido">
+          <span class="btn-label">Novo Pedido</span>
+          <div class="btn-icon"></div>
+        </button>
+
+        <button class="btn-cadastro">
+          <span class="btn-label">Finanças</span>
+          <div class="btn-icon"></div>
+        </button>
+
+        <button class="btn-cadastro">
+          <span class="btn-label">Calendário</span>
+          <div class="btn-icon"></div>
+        </button>
+
+        <button class="btn-cadastro">
+          <span class="btn-label">Status</span>
+          <div class="btn-icon"></div>
+        </button>
+      </div>
+    </section>
+
+    <section class="card-cadastros">
+      <h2 class="card-title">Cadastro</h2>
+      <p class="card-subtitle">
+        Gerencie clientes, produtos, matérias-primas e fornecedores.
+      </p>
+
+      <div class="cadastro-grid-cadastros">
+        <button class="btn-cadastro" id="btn-home-clientes">
+  <span class="btn-label">Cliente</span>
+  <div class="btn-icon"></div>
+</button>
+
+<button class="btn-cadastro" id="btn-home-produtos">
+  <span class="btn-label">Produto</span>
+  <div class="btn-icon"></div>
+</button>
+
+<button class="btn-cadastro" id="btn-home-materias">
+  <span class="btn-label">Matéria Prima</span>
+  <div class="btn-icon"></div>
+</button>
+
+<button class="btn-cadastro" id="btn-home-fornecedores">
+  <span class="btn-label">Fornecedor</span>
+  <div class="btn-icon"></div>
+</button>
+
+      </div>
+    </section>
+
+    <section class="card-consulta">
+      <h2 class="card-title">Consulta</h2>
+      <p class="card-subtitle">
+        Visualize dados financeiros, estoque, relatórios e configurações gerais.
+      </p>
+
+      <div class="consulta-grid">
+        <button class="btn-cadastro">
+          <span class="btn-label">Estoque</span>
+          <div class="btn-icon"></div>
+        </button>
+
+        <button class="btn-cadastro">
+          <span class="btn-label">Finanças</span>
+          <div class="btn-icon"></div>
+        </button>
+
+        <button class="btn-cadastro">
+          <span class="btn-label">Relatórios</span>
+          <div class="btn-icon"></div>
+        </button>
+
+        <button class="btn-cadastro">
+          <span class="btn-label">Configurações</span>
+          <div class="btn-icon"></div>
+        </button>
+      </div>
+    </section>
+  </section>
+
+  <!-- TELA DE CLIENTES -->
+  <section id="clientes-screen" class="screen clientes-screen">
+    <div class="clientes-card">
+      <div class="clientes-header">
+        <h2>Clientes</h2>
+        <p>Veja e gerencie todos os clientes cadastrados em ordem alfabética.</p>
+      </div>
+
+      <div class="clientes-body">
+        <!-- Lista de clientes -->
+        <div class="clientes-list-container">
+          <!-- Por enquanto só um placeholder visual -->
+          <div class="clientes-list-empty">
+            Nenhum cliente cadastrado ainda.
+          </div>
+          <!-- Mais pra frente a gente preenche essa área via JS/Firebase -->
+        </div>
+
+        <!-- Barra lateral de letras -->
+        <div class="clientes-alpha-bar">
+          <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span>
+          <span>F</span><span>G</span><span>H</span><span>I</span><span>J</span>
+          <span>K</span><span>L</span><span>M</span><span>N</span><span>O</span>
+          <span>P</span><span>Q</span><span>R</span><span>S</span><span>T</span>
+          <span>U</span><span>V</span><span>W</span><span>X</span><span>Y</span>
+          <span>Z</span>
+        </div>
+      </div>
+
+      <!-- Botão flutuante de novo cliente -->
+      <button class="fab-add-cliente" type="button">+</button>
+      <!-- NOVO BOTÃO DE EDIÇÃO -->
+<button class="fab-edit-cliente" type="button">✏️</button>
+    </div>
+  </section>
+
+<!-- TELA DE PRODUTOS -->
+  <section id="produtos-screen" class="screen produtos-screen">
+    <div class="produtos-card">
+      <div class="produtos-header">
+        <h2>Produtos</h2>
+        <p>Veja e gerencie todos os produtos cadastrados em ordem alfabética.</p>
+      </div>
+
+      <div class="produtos-body">
+        <!-- Barra lateral de letras -->
+        <div class="produtos-alpha-bar">
+          <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span>
+          <span>F</span><span>G</span><span>H</span><span>I</span><span>J</span>
+          <span>K</span><span>L</span><span>M</span><span>N</span><span>O</span>
+          <span>P</span><span>Q</span><span>R</span><span>S</span><span>T</span>
+          <span>U</span><span>V</span><span>W</span><span>X</span><span>Y</span>
+          <span>Z</span>
+        </div>
+
+        <!-- Lista de produtos -->
+        <div class="produtos-list-container">
+          <!-- Placeholder inicial -->
+          <div class="produtos-list-empty">
+            Nenhum produto cadastrado ainda.
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão flutuante de novo produto -->
+      <button class="fab-add-produto" type="button">+</button>
+      <!-- NOVO BOTÃO DE EDIÇÃO -->
+      <button class="fab-edit-produto" type="button">✏️</button>
+    </div>
+  </section>
+
+  <!-- TELA DE MATÉRIAS-PRIMAS -->
+  <section id="materias-screen" class="screen materias-screen">
+    <div class="materias-card">
+      <div class="materias-header">
+        <h2>Matérias-primas</h2>
+        <p>Cadastre e gerencie as matérias-primas utilizadas na produção.</p>
+      </div>
+
+      <div class="materias-body">
+        <!-- Barra lateral de letras -->
+        <div class="materias-alpha-bar">
+          <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span>
+          <span>F</span><span>G</span><span>H</span><span>I</span><span>J</span>
+          <span>K</span><span>L</span><span>M</span><span>N</span><span>O</span>
+          <span>P</span><span>Q</span><span>R</span><span>S</span><span>T</span>
+          <span>U</span><span>V</span><span>W</span><span>X</span><span>Y</span>
+          <span>Z</span>
+        </div>
+
+        <!-- Lista de matérias-primas -->
+        <div class="materias-list-container">
+          <div class="materias-list-empty">
+            Nenhuma matéria-prima cadastrada ainda.
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão flutuante de nova matéria-prima -->
+      <button class="fab-add-materia" type="button">+</button>
+      <!-- NOVO BOTÃO DE EDIÇÃO -->
+      <button class="fab-edit-materia" type="button">✏️</button>
+    </div>
+  </section>
+
+  <!-- TELA DE FORNECEDORES -->
+  <section id="fornecedores-screen" class="screen fornecedores-screen">
+    <div class="fornecedores-card">
+      <div class="fornecedores-header">
+        <h2>Fornecedores</h2>
+        <p>Cadastre e gerencie fornecedores físicos e da internet.</p>
+      </div>
+
+      <div class="fornecedores-body">
+        <!-- Barra lateral de letras -->
+        <div class="fornecedores-alpha-bar">
+          <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span>
+          <span>F</span><span>G</span><span>H</span><span>I</span><span>J</span>
+          <span>K</span><span>L</span><span>M</span><span>N</span><span>O</span>
+          <span>P</span><span>Q</span><span>R</span><span>S</span><span>T</span>
+          <span>U</span><span>V</span><span>W</span><span>X</span><span>Y</span>
+          <span>Z</span>
+        </div>
+
+        <!-- Lista de fornecedores -->
+        <div class="fornecedores-list-container">
+          <div class="fornecedores-list-empty">
+            Nenhum fornecedor cadastrado ainda.
+          </div>
+        </div>
+      </div>
+
+      <!-- Botão flutuante de novo fornecedor -->
+      <button class="fab-add-fornecedor" type="button">+</button>
+      <!-- NOVO BOTÃO DE EDIÇÃO -->
+      <button class="fab-edit-fornecedor" type="button">✏️</button>
+    </div>
+  </section>
+
+    <!-- TELA DE NOVO PEDIDO -->
+  <section id="pedidos-screen" class="screen pedidos-screen">
+    <div class="pedido-card">
+      <div class="pedido-header">
+        <h2>Novo pedido</h2>
+        <p>Selecione o cliente, escolha os produtos e veja o resumo de custos e lucro.</p>
+      </div>
+
+      <div class="pedido-body">
+
+        <!-- BLOCO CLIENTE -->
+        <div class="pedido-bloco pedido-bloco-cliente">
+          <h3>Cliente</h3>
+
+          <div class="field-group">
+            <label for="pedido-cliente-busca">Buscar cliente</label>
+            <input
+              id="pedido-cliente-busca"
+              type="text"
+              placeholder="Digite o nome do cliente"
+            >
+          </div>
+
+          <!-- sugestões de clientes -->
+          <div id="pedido-cliente-sugestoes" class="pedido-sugestoes"></div>
+
+          <!-- resumo do cliente selecionado -->
+          <div id="pedido-cliente-resumo" class="pedido-cliente-resumo vazio">
+            <p>Nenhum cliente selecionado.</p>
+          </div>
+        </div>
+
+        <hr class="pedido-divider">
+
+        <!-- BLOCO PRODUTOS DO PEDIDO -->
+        <div class="pedido-bloco pedido-bloco-produtos">
+          <h3>Produtos do pedido</h3>
+          <p class="pedido-bloco-subtitle">
+            Adicione um ou mais produtos. As matérias-primas de cada produto aparecem logo abaixo.
+          </p>
+
+          <div id="pedido-produtos-container" class="pedido-produtos-container">
+            <!-- blocos de produto serão criados via JS -->
+          </div>
+
+          <button type="button" id="pedido-add-produto" class="btn-secondary">
+            + Produto
+          </button>
+        </div>
+
+        <hr class="pedido-divider">
+
+        <!-- BLOCO ACRÉSCIMOS / DESCONTOS -->
+<div class="pedido-bloco pedido-bloco-ajustes">
+  <h3>Acréscimos / Descontos</h3>
+  <p class="pedido-bloco-subtitle">
+    Adicione fretes, taxas extras ou descontos especiais.
+  </p>
+
+  <div id="pedido-ajustes-container" class="pedido-ajustes-container">
+    <!-- ajustes serão adicionados via JS -->
   </div>
 
-  <div class="topbar-right">
-    <div class="client-logo-box">
-      <span>logo cliente</span>
+  <button type="button" id="pedido-add-ajuste" class="btn-secondary">
+    + Acréscimo / Desconto
+  </button>
+</div>
+
+<hr class="pedido-divider">
+
+
+        <!-- RESUMO GERAL -->
+        <div class="pedido-bloco pedido-bloco-resumo">
+          <h3>Resumo financeiro do pedido</h3>
+
+          <div class="pedido-resumo">
+  <div>
+    Custo total estimado:
+    <strong id="pedido-resumo-custo">R$ 0,00</strong>
+  </div>
+  <div>
+    Valor total de venda:
+    <strong id="pedido-resumo-venda">R$ 0,00</strong>
+  </div>
+  <div>
+    Acréscimos:
+    <strong id="pedido-resumo-acrescimos">R$ 0,00</strong>
+  </div>
+  <div>
+    Descontos:
+    <strong id="pedido-resumo-descontos">R$ 0,00</strong>
+  </div>
+  <div>
+    Lucro estimado:
+    <strong id="pedido-resumo-lucro">R$ 0,00 (0%)</strong>
+  </div>
+</div>
+
+        </div>
+
+        <!-- AÇÕES -->
+        <div class="pedido-acoes">
+          <button type="button" id="pedido-btn-cancelar" class="btn-secondary">
+            Cancelar
+          </button>
+
+          <button type="button" id="pedido-btn-lancar" class="btn-primary">
+            Lançar pedido
+          </button>
+
+          <button type="button" id="pedido-btn-imprimir-cliente" class="btn-secondary pedido-btn-print">
+            Imprimir para cliente
+          </button>
+
+          <button type="button" id="pedido-btn-imprimir-loja" class="btn-secondary pedido-btn-print">
+            Imprimir para loja
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+</main>
+
+
+
+<!-- MODAL DE CADASTRO DE CLIENTE -->
+<div class="cliente-modal-overlay">
+  <div class="cliente-modal">
+    <button class="cliente-modal-close" type="button">&times;</button>
+    <h3>Novo cliente</h3>
+    <p>Preencha os dados abaixo para cadastrar um novo cliente.</p>
+
+    <form id="cliente-form" class="cliente-form">
+      <div class="field-group">
+        <label for="cliente-nome">Nome *</label>
+        <input id="cliente-nome" name="nome" type="text" required>
+      </div>
+
+      <div class="field-group">
+        <label for="cliente-telefone">Telefone *</label>
+        <input id="cliente-telefone" name="telefone" type="tel" required>
+      </div>
+
+      <div class="field-group">
+        <label for="cliente-endereco">Endereço</label>
+        <input id="cliente-endereco" name="endereco" type="text" placeholder="Rua, número, complemento">
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label for="cliente-cidade">Cidade</label>
+          <input id="cliente-cidade" name="cidade" type="text">
+        </div>
+
+        <div class="field-group">
+          <label for="cliente-estado">Estado</label>
+          <input id="cliente-estado" name="estado" type="text" maxlength="2">
+        </div>
+      </div>
+
+      <div class="field-group field-group-foto">
+        <label for="cliente-foto">Foto do cliente</label>
+        <div class="foto-input-wrapper">
+          <input id="cliente-foto" name="foto" type="file" accept="image/*">
+          <div class="cliente-foto-preview empty" id="cliente-foto-preview"></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Salvar cliente</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE DETALHES DO FORNECEDOR -->
+<div class="fornecedor-detalhe-overlay">
+  <div class="fornecedor-detalhe-modal">
+    <button class="fornecedor-detalhe-close" type="button">&times;</button>
+
+    <h3>Dados do fornecedor</h3>
+    <p class="fornecedor-detalhe-subtitle">
+      Visualize ou edite as informações deste fornecedor.
+    </p>
+
+       <div class="field-group">
+      <label for="detalhe-fornecedor-nome">Nome</label>
+      <input type="text" id="detalhe-fornecedor-nome" disabled>
+    </div>
+
+    <div class="field-group">
+  <label for="detalhe-fornecedor-tipo">Tipo de fornecedor</label>
+  <select id="detalhe-fornecedor-tipo">
+    <option value="">Selecione...</option>
+    <option value="fisico">Físico</option>
+    <option value="internet">Internet</option>
+  </select>
+</div>
+
+
+    <!-- BLOCO QUANDO FOR FÍSICO -->
+    <div id="detalhe-fornecedor-fisico" class="fornecedor-extra">
+      <div class="field-group">
+        <label for="detalhe-fornecedor-contato">Contato</label>
+        <input type="text" id="detalhe-fornecedor-contato" disabled>
+      </div>
+
+      <div class="field-group">
+        <label for="detalhe-fornecedor-endereco">Endereço</label>
+        <input type="text" id="detalhe-fornecedor-endereco" disabled>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label for="detalhe-fornecedor-cidade">Cidade</label>
+          <input type="text" id="detalhe-fornecedor-cidade" disabled>
+        </div>
+        <div class="field-group">
+          <label for="detalhe-fornecedor-estado">Estado</label>
+          <input type="text" id="detalhe-fornecedor-estado" maxlength="2" disabled>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCO QUANDO FOR INTERNET -->
+    <div id="detalhe-fornecedor-internet" class="fornecedor-extra">
+      <div class="field-group">
+        <label for="detalhe-fornecedor-plataforma">Plataforma</label>
+        <input type="text" id="detalhe-fornecedor-plataforma" disabled>
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label for="detalhe-fornecedor-cidade-int">Cidade</label>
+          <input type="text" id="detalhe-fornecedor-cidade-int" disabled>
+        </div>
+        <div class="field-group">
+          <label for="detalhe-fornecedor-estado-int">Estado</label>
+          <input type="text" id="detalhe-fornecedor-estado-int" maxlength="2" disabled>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="fornecedor-detalhe-actions">
+      <button type="button" class="btn-secondary" id="fornecedor-detalhe-editar">
+        Editar
+      </button>
+      <button type="button" class="btn-primary" id="fornecedor-detalhe-salvar" disabled>
+        Salvar
+      </button>
     </div>
   </div>
-</header>
+</div>
+
+<!-- MODAL DE DETALHES DO CLIENTE -->
+<div class="cliente-detalhe-overlay">
+  <div class="cliente-detalhe-modal">
+    <button class="cliente-detalhe-close" type="button">&times;</button>
+
+    <h3>Dados do cliente</h3>
+    <p class="cliente-detalhe-subtitle">
+      Visualize ou edite as informações deste cliente.
+    </p>
+
+    <div class="cliente-detalhe-foto" id="detalhe-cliente-foto"></div>
+    <input
+      type="file"
+      id="detalhe-cliente-foto-input"
+      accept="image/*"
+      style="display: none;"
+    >
+
+    <div class="field-group">
+      <label for="detalhe-cliente-nome">Nome</label>
+      <input type="text" id="detalhe-cliente-nome" disabled>
+    </div>
+
+    <div class="field-group">
+      <label for="detalhe-cliente-telefone">Telefone</label>
+      <input type="text" id="detalhe-cliente-telefone" disabled>
+    </div>
+
+    <div class="field-group">
+      <label for="detalhe-cliente-endereco">Endereço</label>
+      <input type="text" id="detalhe-cliente-endereco" disabled>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label for="detalhe-cliente-cidade">Cidade</label>
+        <input type="text" id="detalhe-cliente-cidade" disabled>
+      </div>
+
+      <div class="field-group">
+        <label for="detalhe-cliente-estado">Estado</label>
+        <input type="text" id="detalhe-cliente-estado" disabled>
+      </div>
+    </div>
+
+    <div class="cliente-detalhe-actions">
+      <button type="button" class="btn-secondary" id="cliente-detalhe-editar">
+        Editar
+      </button>
+      <button type="button" class="btn-primary" id="cliente-detalhe-salvar" disabled>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL DE CADASTRO DE PRODUTO -->
+<div class="produto-modal-overlay">
+  <div class="produto-modal">
+    <button class="produto-modal-close" type="button">&times;</button>
+    <h3>Novo produto</h3>
+    <p>Preencha os dados abaixo para cadastrar um novo produto.</p>
+
+    <form id="produto-form" class="produto-form">
+      <!-- Nome e foto -->
+      <div class="field-group">
+        <label for="produto-nome">Nome do produto *</label>
+        <input id="produto-nome" name="nome" type="text" required>
+      </div>
+
+      <div class="field-group field-group-foto-produto">
+        <label for="produto-foto">Foto do produto</label>
+        <div class="foto-input-wrapper-produto">
+          <input id="produto-foto" name="foto" type="file" accept="image/*">
+          <div class="produto-foto-preview empty" id="produto-foto-preview"></div>
+        </div>
+      </div>
+
+      <hr class="produto-divider">
+
+      <!-- Matérias-primas usadas -->
+      <h4 class="produto-section-title">Matérias-primas utilizadas</h4>
+
+      <div id="produto-mp-container" class="produto-mp-container">
+        <!-- linhas de MP criadas via JS -->
+      </div>
+
+      <button type="button" id="btn-add-mp" class="btn-secondary">
+        + Adicionar matéria-prima
+      </button>
+
+      <hr class="produto-divider">
+
+      <!-- Preço de venda -->
+      <div class="field-group">
+        <label for="produto-preco">Preço de venda (R$)</label>
+        <input id="produto-preco" name="preco" type="number" step="0.01" min="0">
+      </div>
+
+      <hr class="produto-divider">
+
+      <!-- Resumo de custo e lucro -->
+      <div class="produto-resumo">
+        <div>
+          Custo total de matérias-primas:
+          <strong id="produto-resumo-custo">R$ 0,00</strong>
+        </div>
+        <div>
+          Lucro estimado:
+          <strong id="produto-resumo-lucro">R$ 0,00 (0%)</strong>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Salvar produto</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE DETALHES DO PRODUTO -->
+<div class="produto-detalhe-overlay">
+  <div class="produto-detalhe-modal">
+    <button class="produto-detalhe-close" type="button">&times;</button>
+
+    <h3>Dados do produto</h3>
+    <p class="produto-detalhe-subtitle">
+      Visualize ou edite as informações deste produto.
+    </p>
+
+    <div class="produto-detalhe-foto" id="detalhe-produto-foto"></div>
+    <input
+      type="file"
+      id="detalhe-produto-foto-input"
+      accept="image/*"
+      style="display: none;"
+    >
+
+
+    <div class="field-group">
+      <label for="detalhe-produto-nome">Nome</label>
+      <input type="text" id="detalhe-produto-nome" disabled>
+    </div>
+
+    <hr class="produto-divider">
+
+    <h4 class="produto-section-title">Matérias-primas utilizadas</h4>
+    <div id="detalhe-produto-mp-container" class="produto-mp-container">
+      <!-- linhas de MP virão via JS -->
+    </div>
+
+
+<button
+  type="button"
+  id="detalhe-btn-add-mp"
+  class="mp-add-btn"
+>
+  + Adicionar matéria-prima
+</button>
+
+
+
+    <hr class="produto-divider">
+
+    <div class="field-group">
+      <label for="detalhe-produto-preco">Preço de venda (R$)</label>
+      <input type="number" step="0.01" id="detalhe-produto-preco" disabled>
+    </div>
+
+    <hr class="produto-divider">
+
+    <div class="produto-resumo">
+      <div>
+        Custo total de matérias-primas:
+        <strong id="detalhe-produto-resumo-custo">R$ 0,00</strong>
+      </div>
+      <div>
+        Lucro estimado:
+        <strong id="detalhe-produto-resumo-lucro">R$ 0,00 (0%)</strong>
+      </div>
+    </div>
+
+    <div class="produto-detalhe-actions">
+      <button type="button" class="btn-secondary" id="produto-detalhe-editar">
+        Editar
+      </button>
+      <button type="button" class="btn-primary" id="produto-detalhe-salvar" disabled>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- MODAL DE CADASTRO DE MATÉRIA-PRIMA -->
+<div class="materia-modal-overlay">
+  <div class="materia-modal">
+    <button class="materia-modal-close" type="button">&times;</button>
+    <h3>Nova matéria-prima</h3>
+    <p>Informe a matéria-prima e a unidade que será utilizada nos produtos.</p>
+
+    <form id="materia-form" class="materia-form">
+      <div class="field-group">
+        <label for="materia-nome">Nome da matéria-prima *</label>
+        <input id="materia-nome" name="nome" type="text" required>
+      </div>
+
+      <div class="field-group">
+        <label for="materia-unidade">Unidade *</label>
+        <select id="materia-unidade" name="unidade" required>
+          <option value="">Selecione...</option>
+          <option value="UN">Unidade</option>
+          <option value="M">Metro</option>
+          <option value="KG">Quilo</option>
+        </select>
+      </div>
+
+            <!-- Foto da matéria-prima -->
+      <div class="field-group field-group-foto-materia">
+        <label for="materia-foto">Foto da matéria-prima</label>
+        <div class="foto-input-wrapper-materia">
+          <input id="materia-foto" name="foto" type="file" accept="image/*">
+          <div class="materia-foto-preview empty" id="materia-foto-preview"></div>
+        </div>
+      </div>
+
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Salvar matéria-prima</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL DE DETALHES DA MATÉRIA-PRIMA -->
+<div class="materia-detalhe-overlay">
+  <div class="materia-detalhe-modal">
+    <button class="materia-detalhe-close" type="button">&times;</button>
+
+    <h3>Dados da matéria-prima</h3>
+    <p class="materia-detalhe-subtitle">
+      Visualize ou edite as informações desta matéria-prima.
+    </p>
+
+    <div id="detalhe-materia-foto" class="materia-detalhe-foto empty"></div>
+
+<input 
+  type="file" 
+  id="detalhe-materia-foto-input" 
+  accept="image/*" 
+  style="display:none">
+
+
+    <div class="field-group">
+      <label for="detalhe-materia-nome">Nome</label>
+      <input type="text" id="detalhe-materia-nome" disabled>
+    </div>
+
+    <div class="field-group">
+      <label for="detalhe-materia-unidade">Unidade</label>
+      <input type="text" id="detalhe-materia-unidade" disabled>
+    </div>
+
+    <div class="materia-detalhe-actions">
+      <button type="button" class="btn-secondary" id="materia-detalhe-editar">
+        Editar
+      </button>
+      <button type="button" class="btn-primary" id="materia-detalhe-salvar" disabled>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL DE CADASTRO DE FORNECEDOR -->
+<div class="fornecedor-modal-overlay">
+  <div class="fornecedor-modal">
+    <button class="fornecedor-modal-close" type="button">&times;</button>
+    <h3>Novo fornecedor</h3>
+    <p>Cadastre fornecedores físicos ou da internet.</p>
+
+    <form id="fornecedor-form" class="fornecedor-form">
+      <div class="field-group">
+        <label for="fornecedor-nome">Nome *</label>
+        <input id="fornecedor-nome" name="nome" type="text" required>
+      </div>
+
+      <div class="field-group">
+        <label for="fornecedor-tipo">Tipo de fornecedor</label>
+        <select id="fornecedor-tipo" name="tipo">
+          <option value="">Selecione...</option>
+          <option value="internet">Internet</option>
+          <option value="fisico">Físico</option>
+        </select>
+      </div>
+
+      <!-- Campos quando for INTERNET -->
+      <div id="fornecedor-internet-fields" class="fornecedor-extra">
+        <div class="field-group">
+          <label for="fornecedor-plataforma">Plataforma</label>
+          <input id="fornecedor-plataforma" name="plataforma" type="text"
+                 placeholder="Shopee, Mercado Livre...">
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="fornecedor-cidade-int">Cidade</label>
+            <input id="fornecedor-cidade-int" name="cidadeInt" type="text">
+          </div>
+          <div class="field-group">
+            <label for="fornecedor-estado-int">Estado</label>
+            <input id="fornecedor-estado-int" name="estadoInt" type="text" maxlength="2">
+          </div>
+        </div>
+      </div>
+
+      <!-- Campos quando for FÍSICO -->
+      <div id="fornecedor-fisico-fields" class="fornecedor-extra">
+        <div class="field-group">
+          <label for="fornecedor-contato">Contato</label>
+          <input id="fornecedor-contato" name="contato" type="text"
+                 placeholder="Telefone, WhatsApp, etc.">
+        </div>
+
+        <div class="field-group">
+          <label for="fornecedor-endereco">Endereço</label>
+          <input id="fornecedor-endereco" name="endereco" type="text">
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="fornecedor-cidade">Cidade</label>
+            <input id="fornecedor-cidade" name="cidade" type="text">
+          </div>
+          <div class="field-group">
+            <label for="fornecedor-estado">Estado</label>
+            <input id="fornecedor-estado" name="estado" type="text" maxlength="2">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Salvar fornecedor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+<nav class="bottom-nav">
+  <button class="nav-item active">Home</button>
+  <button class="nav-item">Pedidos</button>
+  <button class="nav-item">Venda</button>
+  <button class="nav-item">Agenda</button>
+</nav>
+
+<footer class="lumi-footer">
+  Developed by Catrion — Test Version
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
 
